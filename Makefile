@@ -652,7 +652,7 @@ all_$(1)_clean: $$(addsuffix _clean, $$(filter bu_$(1), $$(BU_TARGETS)))
 all_$(1)_clean: $$(addsuffix _clean, $$(filter ef_$(1), $$(EF_TARGETS)))
 endef
 
-ALL_BOARDS := coptercontrol pipxtreme simposix
+ALL_BOARDS := coptercontrol pipxtreme simposix discovery
 
 # SimPosix only builds on Linux so drop it from the list for
 # all other platforms.
@@ -665,6 +665,7 @@ coptercontrol_friendly := CopterControl
 pipxtreme_friendly     := PipXtreme
 revolution_friendly    := Revolution
 simposix_friendly      := SimPosix
+discovery_friendly     := Discovery
 
 # SimPosix only builds on Linux so drop it from the list for
 # all other platforms.
@@ -678,6 +679,7 @@ pipxtreme_short        := 'pipx'
 revolution_short       := 'revo'
 simposix_short         := 'posx'
 osd_short              := 'osd '
+discovery_short        := 'disc'
 
 # Start out assuming that we'll build fw, bl and bu for all boards
 FW_BOARDS  := $(ALL_BOARDS)
