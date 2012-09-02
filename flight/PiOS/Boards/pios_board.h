@@ -13,6 +13,8 @@
 #include "STM32F2xx_INS.h"
 #elif USE_STM32F4xx_OP
 #include "STM32F4xx_Revolution.h"
+#elif USE_STM32F4xx_Discovery
+#include "STM32F4xx_Discovery.h"
 #else
 #error Board definition has not been provided.
 #endif

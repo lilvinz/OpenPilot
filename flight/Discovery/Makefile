@@ -96,7 +96,7 @@ OPTMODULES += Fault
 endif
 
 # List of mandatory modules to include
-MODULES = Attitude Stabilization Actuator ManualControl FirmwareIAP
+MODULES = Attitude/revolution Stabilization Actuator ManualControl FirmwareIAP
 # Telemetry must be last to grab the optional modules (why?)
 MODULES += Telemetry
 
@@ -105,34 +105,33 @@ OPSYSTEM = ./System
 OPSYSTEMINC = $(OPSYSTEM)/inc
 OPUAVTALK = ../UAVTalk
 OPUAVTALKINC = $(OPUAVTALK)/inc
-OPUAVOBJ = ../UAVObjects
-OPUAVOBJINC = $(OPUAVOBJ)/inc
-OPTESTS  = ./Tests
+PIOS = ../PiOS
+PIOSINC = $(PIOS)/inc
 OPMODULEDIR = ../Modules
 FLIGHTLIB = ../Libraries
 FLIGHTLIBINC = $(FLIGHTLIB)/inc
-PIOS = ../PiOS
-PIOSINC = $(PIOS)/inc
-PIOSSTM32F10X = $(PIOS)/STM32F10x
+PIOSSTM32F4XX = $(PIOS)/STM32F4xx
 PIOSCOMMON = $(PIOS)/Common
 PIOSBOARDS = $(PIOS)/Boards
-APPLIBDIR = $(PIOSSTM32F10X)/Libraries
+PIOSCOMMONLIB = $(PIOSCOMMON)/Libraries
+APPLIBDIR = $(PIOSSTM32F4XX)/Libraries
 STMLIBDIR = $(APPLIBDIR)
-STMSPDDIR = $(STMLIBDIR)/STM32F10x_StdPeriph_Driver
-STMUSBDIR = $(STMLIBDIR)/STM32_USB-FS-Device_Driver
+STMSPDDIR = $(STMLIBDIR)/STM32F4xx_StdPeriph_Driver
 STMSPDSRCDIR = $(STMSPDDIR)/src
 STMSPDINCDIR = $(STMSPDDIR)/inc
-STMUSBSRCDIR = $(STMUSBDIR)/src
-STMUSBINCDIR = $(STMUSBDIR)/inc
-CMSISDIR  = $(STMLIBDIR)/CMSIS/Core/CM3
-DOSFSDIR  = $(APPLIBDIR)/dosfs
-MSDDIR  = $(APPLIBDIR)/msd
-RTOSDIR = $(APPLIBDIR)/FreeRTOS
-RTOSSRCDIR = $(RTOSDIR)/Source
-RTOSINCDIR = $(RTOSSRCDIR)/include
-DOXYGENDIR = ../Doc/Doxygen
+OPUAVOBJ = ../UAVObjects
+OPUAVOBJINC = $(OPUAVOBJ)/inc
 AHRSBOOTLOADER = ../Bootloaders/AHRS/
 AHRSBOOTLOADERINC = $(AHRSBOOTLOADER)/inc
+#STMUSBSRCDIR = $(STMUSBDIR)/src
+#STMUSBINCDIR = $(STMUSBDIR)/inc
+#CMSISDIR  = $(STMLIBDIR)/CMSIS/Core/CM3
+#DOSFSDIR  = $(APPLIBDIR)/dosfs
+#MSDDIR  = $(APPLIBDIR)/msd
+#RTOSDIR = $(APPLIBDIR)/FreeRTOS
+#RTOSSRCDIR = $(RTOSDIR)/Source
+#RTOSINCDIR = $(RTOSSRCDIR)/include
+DOXYGENDIR = ../Doc/Doxygen
 PYMITE = $(FLIGHTLIB)/PyMite
 PYMITELIB = $(PYMITE)/lib
 PYMITEPLAT = $(PYMITE)/platform/openpilot
@@ -144,13 +143,18 @@ PYMITEINC += $(OUTDIR)
 FLIGHTPLANLIB = $(OPMODULEDIR)/FlightPlan/lib
 FLIGHTPLANS = $(OPMODULEDIR)/FlightPlan/flightplans
 HWDEFSINC = ../board_hw_defs/$(BOARD_NAME)
+UAVOBJSYNTHDIR = $(OUTDIR)/../uavobject-synthetics/flight
 
-OPUAVSYNTHDIR = $(OUTDIR)/../uavobject-synthetics/flight
+SRC = 
+# optional component libraries
+include $(PIOSCOMMONLIB)/FreeRTOS/library.mk
+#include $(PIOSCOMMONLIB)/dosfs/library.mk
+include $(PIOSCOMMONLIB)/msheap/library.mk
+
 
 # List C source files here. (C dependencies are automatically generated.)
 # use file-extension c for "c-only"-files
 
-ifndef TESTAPP
 ## MODULES
 SRC += ${foreach MOD, ${OPTMODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
 SRC += ${foreach MOD, ${MODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
@@ -158,175 +162,60 @@ SRC += ${foreach MOD, ${MODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
 SRC += ${OPMODULEDIR}/System/systemmod.c
 SRC += $(OPSYSTEM)/discovery.c
 SRC += $(OPSYSTEM)/pios_board.c
+SRC += $(OPSYSTEM)/pios_usb_board_data.c
 SRC += $(OPSYSTEM)/alarms.c
 SRC += $(OPUAVTALK)/uavtalk.c
 SRC += $(OPUAVOBJ)/uavobjectmanager.c
 SRC += $(OPUAVOBJ)/eventdispatcher.c
-else
-## TESTCODE
-SRC += $(OPTESTS)/test_common.c
-SRC += $(OPTESTS)/$(TESTAPP).c
-endif
+
+#ifeq ($(DEBUG),YES)
+SRC += $(OPSYSTEM)/dcc_stdio.c
+SRC += $(OPSYSTEM)/cm3_fault_handlers.c
+#endif
 
 
 
-## UAVOBJECTS
-ifndef TESTAPP
-SRC += $(OPUAVSYNTHDIR)/accessorydesired.c
-SRC += $(OPUAVSYNTHDIR)/objectpersistence.c
-SRC += $(OPUAVSYNTHDIR)/gcstelemetrystats.c
-SRC += $(OPUAVSYNTHDIR)/flighttelemetrystats.c
-SRC += $(OPUAVSYNTHDIR)/faultsettings.c
-SRC += $(OPUAVSYNTHDIR)/flightstatus.c
-SRC += $(OPUAVSYNTHDIR)/systemstats.c
-SRC += $(OPUAVSYNTHDIR)/systemalarms.c
-SRC += $(OPUAVSYNTHDIR)/systemsettings.c
-SRC += $(OPUAVSYNTHDIR)/stabilizationdesired.c
-SRC += $(OPUAVSYNTHDIR)/stabilizationsettings.c
-SRC += $(OPUAVSYNTHDIR)/actuatorcommand.c
-SRC += $(OPUAVSYNTHDIR)/actuatordesired.c
-SRC += $(OPUAVSYNTHDIR)/actuatorsettings.c
-SRC += $(OPUAVSYNTHDIR)/accels.c
-SRC += $(OPUAVSYNTHDIR)/gyros.c
-SRC += $(OPUAVSYNTHDIR)/attitudeactual.c
-SRC += $(OPUAVSYNTHDIR)/manualcontrolcommand.c
-SRC += $(OPUAVSYNTHDIR)/i2cstats.c
-SRC += $(OPUAVSYNTHDIR)/watchdogstatus.c
-SRC += $(OPUAVSYNTHDIR)/manualcontrolsettings.c
-SRC += $(OPUAVSYNTHDIR)/mixersettings.c
-SRC += $(OPUAVSYNTHDIR)/firmwareiapobj.c
-SRC += $(OPUAVSYNTHDIR)/attitudesettings.c
-SRC += $(OPUAVSYNTHDIR)/camerastabsettings.c
-SRC += $(OPUAVSYNTHDIR)/cameradesired.c
-SRC += $(OPUAVSYNTHDIR)/gpsposition.c
-SRC += $(OPUAVSYNTHDIR)/hwsettings.c
-SRC += $(OPUAVSYNTHDIR)/gcsreceiver.c
-SRC += $(OPUAVSYNTHDIR)/receiveractivity.c
-SRC += $(OPUAVSYNTHDIR)/taskinfo.c
-SRC += $(OPUAVSYNTHDIR)/mixerstatus.c
-SRC += $(OPUAVSYNTHDIR)/ratedesired.c
-SRC += $(OPUAVSYNTHDIR)/baroaltitude.c
-SRC += $(OPUAVSYNTHDIR)/txpidsettings.c
-
-endif
-
-## PIOS Hardware (STM32F10x)
-SRC += $(PIOSSTM32F10X)/pios_sys.c
-SRC += $(PIOSSTM32F10X)/pios_led.c
-SRC += $(PIOSSTM32F10X)/pios_delay.c
-SRC += $(PIOSSTM32F10X)/pios_usart.c
-SRC += $(PIOSSTM32F10X)/pios_irq.c
-SRC += $(PIOSSTM32F10X)/pios_adc.c
-SRC += $(PIOSSTM32F10X)/pios_servo.c
-SRC += $(PIOSSTM32F10X)/pios_i2c.c
-SRC += $(PIOSSTM32F10X)/pios_spi.c
-SRC += $(PIOSSTM32F10X)/pios_ppm.c
-SRC += $(PIOSSTM32F10X)/pios_pwm.c
-SRC += $(PIOSSTM32F10X)/pios_dsm.c
-SRC += $(PIOSSTM32F10X)/pios_sbus.c
-SRC += $(PIOSSTM32F10X)/pios_debug.c
-SRC += $(PIOSSTM32F10X)/pios_gpio.c
-SRC += $(PIOSSTM32F10X)/pios_exti.c
-SRC += $(PIOSSTM32F10X)/pios_rtc.c
-SRC += $(PIOSSTM32F10X)/pios_wdg.c
-SRC += $(PIOSSTM32F10X)/pios_iap.c
-SRC += $(PIOSSTM32F10X)/pios_tim.c
-SRC += $(PIOSSTM32F10X)/pios_bl_helper.c
+## PIOS Hardware (STM32F4xx)
+include $(PIOS)/STM32F4xx/library.mk
 
 # PIOS USB related files (separated to make code maintenance more easy)
-SRC += $(PIOSSTM32F10X)/pios_usb.c
-SRC += $(PIOSSTM32F10X)/pios_usbhook.c
-SRC += $(PIOSSTM32F10X)/pios_usb_hid.c
-SRC += $(PIOSSTM32F10X)/pios_usb_cdc.c
-SRC += $(PIOSSTM32F10X)/pios_usb_hid_istr.c
-SRC += $(PIOSSTM32F10X)/pios_usb_hid_pwr.c
-SRC += $(OPSYSTEM)/pios_usb_board_data.c
-SRC += $(PIOSCOMMON)/pios_usb_desc_hid_cdc.c
-SRC += $(PIOSCOMMON)/pios_usb_desc_hid_only.c
+#SRC += $(PIOSSTM32F4XX)/pios_usb.c
+#SRC += $(PIOSSTM32F4XX)/pios_usbhook.c
+#SRC += $(PIOSSTM32F4XX)/pios_usb_hid.c
+#SRC += $(PIOSSTM32F4XX)/pios_usb_cdc.c
+#SRC += $(PIOSSTM32F4XX)/pios_usb_hid_istr.c
+#SRC += $(PIOSSTM32F4XX)/pios_usb_hid_pwr.c
+#SRC += $(OPSYSTEM)/pios_usb_board_data.c
+#SRC += $(PIOSCOMMON)/pios_usb_desc_hid_cdc.c
+#SRC += $(PIOSCOMMON)/pios_usb_desc_hid_only.c
 SRC += $(PIOSCOMMON)/pios_usb_util.c
 
 ## PIOS Hardware (Common)
-SRC += $(PIOSCOMMON)/pios_crc.c
-SRC += $(PIOSCOMMON)/pios_flashfs_objlist.c
-SRC += $(PIOSCOMMON)/pios_flash_jedec.c
-SRC += $(PIOSCOMMON)/pios_adxl345.c
 SRC += $(PIOSCOMMON)/pios_mpu6000.c
+SRC += $(PIOSCOMMON)/pios_crc.c
 SRC += $(PIOSCOMMON)/pios_com.c
-#SRC += $(PIOSCOMMON)/pios_i2c_esc.c
-#SRC += $(PIOSCOMMON)/pios_bmp085.c
 SRC += $(PIOSCOMMON)/pios_rcvr.c
 SRC += $(PIOSCOMMON)/pios_gcsrcvr.c
+SRC += $(PIOSCOMMON)/pios_flash_jedec.c
+SRC += $(PIOSCOMMON)/pios_flashfs_objlist.c
 SRC += $(PIOSCOMMON)/printf-stdarg.c
+SRC += $(PIOSCOMMON)/pios_usb_desc_hid_cdc.c
+SRC += $(PIOSCOMMON)/pios_usb_desc_hid_only.c
+
 ## Libraries for flight calculations
 SRC += $(FLIGHTLIB)/fifo_buffer.c
 SRC += $(FLIGHTLIB)/CoordinateConversions.c
 SRC += $(FLIGHTLIB)/taskmonitor.c
 
-## CMSIS for STM32
-SRC += $(CMSISDIR)/core_cm3.c
-SRC += $(CMSISDIR)/system_stm32f10x.c
+include ./UAVObjects.inc
+SRC += $(UAVOBJSRC)
 
-## Used parts of the STM-Library
-SRC += $(STMSPDSRCDIR)/stm32f10x_adc.c
-SRC += $(STMSPDSRCDIR)/stm32f10x_bkp.c
-SRC += $(STMSPDSRCDIR)/stm32f10x_crc.c
-SRC += $(STMSPDSRCDIR)/stm32f10x_dac.c
-SRC += $(STMSPDSRCDIR)/stm32f10x_dma.c
-SRC += $(STMSPDSRCDIR)/stm32f10x_exti.c
-SRC += $(STMSPDSRCDIR)/stm32f10x_flash.c
-SRC += $(STMSPDSRCDIR)/stm32f10x_gpio.c
-SRC += $(STMSPDSRCDIR)/stm32f10x_i2c.c
-SRC += $(STMSPDSRCDIR)/stm32f10x_pwr.c
-SRC += $(STMSPDSRCDIR)/stm32f10x_rcc.c
-SRC += $(STMSPDSRCDIR)/stm32f10x_rtc.c
-SRC += $(STMSPDSRCDIR)/stm32f10x_spi.c
-SRC += $(STMSPDSRCDIR)/stm32f10x_tim.c
-SRC += $(STMSPDSRCDIR)/stm32f10x_usart.c
-SRC += $(STMSPDSRCDIR)/stm32f10x_iwdg.c
-SRC += $(STMSPDSRCDIR)/stm32f10x_dbgmcu.c
-SRC += $(STMSPDSRCDIR)/misc.c
 
-## STM32 USB Library
-SRC += $(STMUSBSRCDIR)/usb_core.c
-SRC += $(STMUSBSRCDIR)/usb_init.c
-SRC += $(STMUSBSRCDIR)/usb_int.c
-SRC += $(STMUSBSRCDIR)/usb_mem.c
-SRC += $(STMUSBSRCDIR)/usb_regs.c
-SRC += $(STMUSBSRCDIR)/usb_sil.c
-
-## RTOS
-SRC += $(RTOSSRCDIR)/list.c
-SRC += $(RTOSSRCDIR)/queue.c
-SRC += $(RTOSSRCDIR)/tasks.c
-
-## RTOS Portable
-SRC += $(RTOSSRCDIR)/portable/GCC/ARM_CM3/port.c
-SRC += $(RTOSSRCDIR)/portable/MemMang/heap_1.c
-
-## Dosfs file system
-#SRC += $(DOSFSDIR)/dosfs.c
-#SRC += $(DOSFSDIR)/dfs_sdcard.c
-
-## PyMite files
-#SRC += $(wildcard ${PYMITEVM}/*.c)
-#SRC += $(wildcard ${PYMITEPLAT}/*.c)
-#SRC += $(OUTDIR)/pmlib_img.c
-#SRC += $(OUTDIR)/pmlib_nat.c
-#SRC += $(OUTDIR)/pmlibusr_img.c
-#SRC += $(OUTDIR)/pmlibusr_nat.c
-
-## Mass Storage Device
-#SRC += $(MSDDIR)/msd.c
-#SRC += $(MSDDIR)/msd_bot.c
-#SRC += $(MSDDIR)/msd_desc.c
-#SRC += $(MSDDIR)/msd_memory.c
-#SRC += $(MSDDIR)/msd_scsi.c
-#SRC += $(MSDDIR)/msd_scsi_data.c
 
 # List C source files here which must be compiled in ARM-Mode (no -mthumb).
 # use file-extension c for "c-only"-files
 ## just for testing, timer.c could be compiled in thumb-mode too
-SRCARM =
+SRCARM = 
 
 # List C++ source files here.
 # use file-extension .cpp for C++-files (not .C)
@@ -344,37 +233,32 @@ CPPSRCARM =
 # Even though the DOS/Win* filesystem matches both .s and .S the same,
 # it will preserve the spelling of the filenames, and gcc itself does
 # care about how the name is spelled on its command-line.
-ASRC = $(PIOSSTM32F10X)/startup_stm32f10x_$(MODEL)$(MODEL_SUFFIX).S
+ASRC = $(PIOSSTM32F4XX)/startup_stm32f4xx.s
 
 # List Assembler source files here which must be assembled in ARM-Mode..
 ASRCARM =
 
 # List any extra directories to look for include files here.
 #    Each directory must be seperated by a space.
-EXTRAINCDIRS  =  $(OPSYSTEM)
+EXTRAINCDIRS  += $(PIOS)
+EXTRAINCDIRS  += $(PIOSINC)
 EXTRAINCDIRS  += $(OPSYSTEMINC)
 EXTRAINCDIRS  += $(OPUAVTALK)
 EXTRAINCDIRS  += $(OPUAVTALKINC)
 EXTRAINCDIRS  += $(OPUAVOBJ)
 EXTRAINCDIRS  += $(OPUAVOBJINC)
-EXTRAINCDIRS  += $(OPUAVSYNTHDIR)
-EXTRAINCDIRS  += $(PIOS)
-EXTRAINCDIRS  += $(PIOSINC)
+EXTRAINCDIRS  += $(UAVOBJSYNTHDIR)
 EXTRAINCDIRS  += $(FLIGHTLIBINC)
-EXTRAINCDIRS  += $(PIOSSTM32F10X)
+EXTRAINCDIRS  += $(PIOSSTM32F4XX)
 EXTRAINCDIRS  += $(PIOSCOMMON)
 EXTRAINCDIRS  += $(PIOSBOARDS)
 EXTRAINCDIRS  += $(STMSPDINCDIR)
-EXTRAINCDIRS  += $(STMUSBINCDIR)
 EXTRAINCDIRS  += $(CMSISDIR)
-EXTRAINCDIRS  += $(DOSFSDIR)
-EXTRAINCDIRS  += $(MSDDIR)
-EXTRAINCDIRS  += $(RTOSINCDIR)
-EXTRAINCDIRS  += $(APPLIBDIR)
-EXTRAINCDIRS  += $(RTOSSRCDIR)/portable/GCC/ARM_CM3
-EXTRAINCDIRS  += $(AHRSBOOTLOADERINC)
+EXTRAINCDIRS  += $(OPUAVSYNTHDIR)
+EXTRAINCDIRS  += $(BOOTINC)
 EXTRAINCDIRS  += $(PYMITEINC)
 EXTRAINCDIRS  += $(HWDEFSINC)
+
 
 EXTRAINCDIRS += ${foreach MOD, ${OPTMODULES} ${MODULES}, ${OPMODULEDIR}/${MOD}/inc} ${OPMODULEDIR}/System/inc
 
@@ -394,7 +278,7 @@ EXTRA_LIBDIRS =
 EXTRA_LIBS =
 
 # Path to Linker-Scripts
-LINKERSCRIPTPATH = $(PIOSSTM32F10X)
+LINKERSCRIPTPATH = $(PIOSSTM32F4XX)
 
 # Optimization level, can be [0, 1, 2, 3, s].
 # 0 = turn off optimization. s = optimize for size.
@@ -418,7 +302,7 @@ DEBUGF = dwarf-2
 
 # Place project-specific -D (define) and/or
 # -U options for C here.
-CDEFS = -DSTM32F10X_$(MODEL)
+CDEFS = -DSTM32F4XX_$(MODEL)
 CDEFS += -DUSE_STDPERIPH_DRIVER
 CDEFS += -DUSE_$(BOARD)
 ifeq ($(ENABLE_DEBUG_PINS), YES)
@@ -440,7 +324,7 @@ CDEFS += -DUSE_I2C
 endif
 
 # Declare all non-optional modules as built-in to force inclusion
-CDEFS += ${foreach MOD, ${MODULES}, -DMODULE_$(MOD)_BUILTIN }
+#CDEFS += ${foreach MOD, ${MODULES}, -DMODULE_$(MOD)_BUILTIN }
 
 # Place project-specific -D and/or -U options for
 # Assembler with preprocessor here.
@@ -479,9 +363,14 @@ ifeq ($(DIAG_TASKS),YES)
 CFLAGS += -DDIAG_TASKS
 endif
 
+# This is not the best place for these.  Really should abstract out
+# to the board file or something
+CFLAGS += -DSTM32F4XX
+CFLAGS += -DMEM_SIZE=1024000000
+
 CFLAGS += -g$(DEBUGF)
 CFLAGS += -O$(OPT)
-CFLAGS += -mcpu=$(MCU)
+CFLAGS += -mcpu=$(MCU) -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=softfp -fsingle-precision-constant
 CFLAGS += $(CDEFS)
 CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS)) -I.
 
@@ -499,7 +388,7 @@ CFLAGS += -fpromote-loop-indices
 endif
 
 CFLAGS += -Wall
-CFLAGS += -Werror
+#CFLAGS += -Werror
 CFLAGS += -Wa,-adhlns=$(addprefix $(OUTDIR)/, $(notdir $(addsuffix .lst, $(basename $<))))
 # Compiler flags to generate dependency files:
 CFLAGS += -MD -MP -MF $(OUTDIR)/dep/$(@F).d

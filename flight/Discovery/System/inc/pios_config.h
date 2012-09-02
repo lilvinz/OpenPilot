@@ -33,13 +33,14 @@
 #ifndef PIOS_CONFIG_H
 #define PIOS_CONFIG_H
 
+/* Major features */
+#define PIOS_INCLUDE_FREERTOS
+#define PIOS_INCLUDE_BL_HELPER
+
 /* Enable/Disable PiOS Modules */
-#define PIOS_INCLUDE_ADC
+//#define PIOS_INCLUDE_ADC
 #define PIOS_INCLUDE_DELAY
-//#if defined(USE_I2C)
-//#define PIOS_INCLUDE_I2C
-//#define PIOS_INCLUDE_I2C_ESC
-//#endif
+#define PIOS_INCLUDE_I2C
 #define PIOS_INCLUDE_IRQ
 #define PIOS_INCLUDE_LED
 #define PIOS_INCLUDE_IAP
@@ -49,10 +50,10 @@
 
 /* Supported receiver interfaces */
 #define PIOS_INCLUDE_DSM
-#define PIOS_INCLUDE_SBUS
+//#define PIOS_INCLUDE_SBUS  port for F4XX is missing
 #define PIOS_INCLUDE_PPM
 #define PIOS_INCLUDE_PWM
-#define PIOS_INCLUDE_GCSRCVR
+//#define PIOS_INCLUDE_GCSRCVR
 
 /* Supported USART-based PIOS modules */
 #define PIOS_INCLUDE_TELEMETRY_RF
@@ -65,15 +66,13 @@
 #define PIOS_INCLUDE_USART
 #define PIOS_INCLUDE_USB
 #define PIOS_INCLUDE_USB_HID
-#define PIOS_INCLUDE_USB_CDC
+//#define PIOS_INCLUDE_USB_CDC  doesnt compile
 #define PIOS_INCLUDE_COM
 #define PIOS_INCLUDE_SETTINGS
-#define PIOS_INCLUDE_FREERTOS
-#define PIOS_INCLUDE_GPIO
+//#define PIOS_INCLUDE_GPIO
 #define PIOS_INCLUDE_EXTI
 #define PIOS_INCLUDE_RTC
 #define PIOS_INCLUDE_WDG
-#define PIOS_INCLUDE_BL_HELPER
 
 #define PIOS_INCLUDE_ADXL345
 #define PIOS_INCLUDE_FLASH
@@ -96,7 +95,6 @@
 #define PIOS_MANUAL_STACK_SIZE          800
 #define PIOS_SYSTEM_STACK_SIZE          660
 #define PIOS_STABILIZATION_STACK_SIZE   524
-#define PIOS_TELEM_STACK_SIZE           500
 #define PIOS_EVENTDISPATCHER_STACK_SIZE 130
 #define IDLE_COUNTS_PER_SEC_AT_NO_LOAD 1995998
 //#define PIOS_QUATERNION_STABILIZATION
