@@ -209,7 +209,7 @@ init_adc(void)
 /**
  * @brief Init the ADC.
  */
-void PIOS_ADC_Init()
+int32_t PIOS_ADC_Init(const struct pios_adc_cfg * cfg)
 {
 #if defined(PIOS_INCLUDE_ADC)
 	init_pins();
@@ -217,6 +217,7 @@ void PIOS_ADC_Init()
 	init_timer();
 	init_adc();
 #endif
+	return 0;
 }
 
 /**
