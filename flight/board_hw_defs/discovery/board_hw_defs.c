@@ -36,29 +36,57 @@
 
 #include <pios_led_priv.h>
 static const struct pios_led pios_leds[] = {
-	[PIOS_LED_HEARTBEAT] = {
+	[PIOS_LED_GREEN] = {
 		.pin = {
-			.gpio = GPIOE,
+			.gpio = GPIOD,
 			.init = {
-				.GPIO_Pin   = GPIO_Pin_2,
+				.GPIO_Pin   = GPIO_Pin_12,
 				.GPIO_Speed = GPIO_Speed_50MHz,
 				.GPIO_Mode  = GPIO_Mode_OUT,
 				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd = GPIO_PuPd_UP
+				.GPIO_PuPd = GPIO_PuPd_DOWN
 			},
 		},
+		.remap = 0,
 	},
-	[PIOS_LED_ALARM] = {
+	[PIOS_LED_ORANGE] = {
 		.pin = {
-			.gpio = GPIOE,
+			.gpio = GPIOD,
 			.init = {
-				.GPIO_Pin   = GPIO_Pin_3,
+				.GPIO_Pin   = GPIO_Pin_13,
 				.GPIO_Speed = GPIO_Speed_50MHz,
 				.GPIO_Mode  = GPIO_Mode_OUT,
 				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd = GPIO_PuPd_UP
+				.GPIO_PuPd = GPIO_PuPd_DOWN
 			},
 		},
+		.remap = 0,
+	},
+	[PIOS_LED_RED] = {
+		.pin = {
+			.gpio = GPIOD,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_14,
+				.GPIO_Speed = GPIO_Speed_50MHz,
+				.GPIO_Mode  = GPIO_Mode_OUT,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd = GPIO_PuPd_DOWN
+			},
+		},
+		.remap = 0,
+	},
+	[PIOS_LED_BLUE] = {
+		.pin = {
+			.gpio = GPIOD,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_15,
+				.GPIO_Speed = GPIO_Speed_50MHz,
+				.GPIO_Mode  = GPIO_Mode_OUT,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd = GPIO_PuPd_DOWN
+			},
+		},
+		.remap = 0,
 	},
 };
 
@@ -1174,9 +1202,9 @@ static const struct pios_usb_cfg pios_usb_main_cfg = {
 		},
 	},
 	.vsense = {
-		.gpio = GPIOD,
+		.gpio = GPIOA,
 		.init = {
-			.GPIO_Pin   = GPIO_Pin_11,
+			.GPIO_Pin   = GPIO_Pin_9,
 			.GPIO_Speed = GPIO_Speed_25MHz,
 			.GPIO_Mode  = GPIO_Mode_IN,
 			.GPIO_OType = GPIO_OType_OD,
