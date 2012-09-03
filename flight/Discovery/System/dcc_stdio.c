@@ -29,7 +29,9 @@
 #define TARGET_REQ_DEBUGMSG_HEXMSG(size)	(0x01 | ((size & 0xff) << 8))
 #define TARGET_REQ_DEBUGCHAR				0x02
 
-/* we use the cortex_m3 DCRDR reg to simulate a arm7_9 dcc channel
+#if defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7EM__) || defined(__ARM_ARCH_6SM__)
+
+/* we use the System Control Block DCRDR reg to simulate a arm7_9 dcc channel
  * DCRDR[7:0] is used by target for status
  * DCRDR[15:8] is used by target for write buffer
  * DCRDR[23:16] is used for by host for status
@@ -53,6 +55,23 @@ void dbg_write(unsigned long dcc_data)
 		dcc_data >>= 8;
 	}
 }
+
+#elif defined(__ARM_ARCH_4T__) || defined(__ARM_ARCH_5TE__) || defined(__ARM_ARCH_5T__)
+
+void dbg_write(unsigned long dcc_data)
+{
+	unsigned long dcc_status;
+
+	do {
+		asm volatile("mrc p14, 0, %0, c0, c0" : "=r" (dcc_status));
+	} while (dcc_status & 0x2);
+
+	asm volatile("mcr p14, 0, %0, c1, c0" : : "r" (dcc_data));
+}
+
+#else
+ #error unsupported target
+#endif
 
 void dbg_trace_point(unsigned long number)
 {
