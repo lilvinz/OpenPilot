@@ -35,7 +35,6 @@
 /* OpenPilot Includes */
 #include "openpilot.h"
 #include "uavobjectsinit.h"
-#include "hwsettings.h"
 #include "systemmod.h"
 
 /* Task Priorities */
@@ -43,71 +42,98 @@
 
 /* Global Variables */
 
+/* Local Variables */
+#define INCLUDE_TEST_TASKS 0
+#if INCLUDE_TEST_TASKS
+static uint8_t sdcard_available;
+#endif
+FILEINFO File;
+char Buffer[1024];
+uint32_t Cache;
+
+/* Function Prototypes */
+#if INCLUDE_TEST_TASKS
+static void TaskTick(void *pvParameters);
+static void TaskTesting(void *pvParameters);
+static void TaskHIDTest(void *pvParameters);
+static void TaskServos(void *pvParameters);
+static void TaskSDCard(void *pvParameters);
+#endif
+int32_t CONSOLE_Parse(uint8_t port, char c);
+void OP_ADC_NotifyChange(uint32_t pin, uint32_t pin_value);
+
 /* Prototype of PIOS_Board_Init() function */
 extern void PIOS_Board_Init(void);
+extern void Stack_Change(void);
+static void Stack_Change_Weak () __attribute__ ((weakref ("Stack_Change")));
+
+/* Local Variables */
+#define INIT_TASK_PRIORITY	(tskIDLE_PRIORITY + configMAX_PRIORITIES - 1)	// max priority
+#define INIT_TASK_STACK		(1024 / 4)										// XXX this seems excessive
+static xTaskHandle initTaskHandle;
+
+/* Function Prototypes */
+static void initTask(void *parameters);
+
+/* Prototype of generated InitModules() function */
+extern void InitModules(void);
 
 /**
 * OpenPilot Main function:
 *
 * Initialize PiOS<BR>
 * Create the "System" task (SystemModInitializein Modules/System/systemmod.c) <BR>
-* Start FreeRTOS Scheduler (vTaskStartScheduler) (Now handled by caller)
+* Start FreeRTOS Scheduler (vTaskStartScheduler)<BR>
 * If something goes wrong, blink LED1 and LED2 every 100ms
 *
 */
 int main()
 {
+	int	result;
+
 	/* NOTE: Do NOT modify the following start-up sequence */
 	/* Any new initialization functions should be added in OpenPilotInit() */
+	vPortInitialiseBlocks();
 
 	/* Brings up System using CMSIS functions, enables the LEDs. */
 	PIOS_SYS_Init();
 
-	/* Architecture dependant Hardware and
-	 * core subsystem initialisation
-	 * (see pios_board.c for your arch)
-	 * */
-	PIOS_Board_Init();
+	/* For Revolution we use a FreeRTOS task to bring up the system so we can */
+	/* always rely on FreeRTOS primitive */
+	result = xTaskCreate(initTask, (const signed char *)"init",
+						 INIT_TASK_STACK, NULL, INIT_TASK_PRIORITY,
+						 &initTaskHandle);
+	PIOS_Assert(result == pdPASS);
 
-#ifdef ERASE_FLASH
-	PIOS_Flash_Jedec_EraseChip();
-#if defined(PIOS_LED_HEARTBEAT)
-	PIOS_LED_Off(PIOS_LED_HEARTBEAT);
-#endif	/* PIOS_LED_HEARTBEAT */
-	while (1) ;
-#endif
-
-	/* Initialize modules */
-	MODULE_INITIALISE_ALL
-
-
-	/* Start the FreeRTOS scheduler, which should never return.
-	 *
-	 * NOTE: OpenPilot runs an operating system (FreeRTOS), which constantly calls 
-	 * (schedules) function files (modules). These functions never return from their
-	 * while loops, which explains why each module has a while(1){} segment. Thus, 
-	 * the OpenPilot software actually starts at the vTaskStartScheduler() function, 
-	 * even though this is somewhat obscure.
-	 *
-	 * In addition, there are many main() functions in the OpenPilot firmware source tree
-	 * This is because each main() refers to a separate hardware platform. Of course,
-	 * C only allows one main(), so only the relevant main() function is compiled when 
-	 * making a specific firmware.
-	 *
-	 */
+	/* Start the FreeRTOS scheduler */
 	vTaskStartScheduler();
 
 	/* If all is well we will never reach here as the scheduler will now be running. */
-
-	/* Do some indication to user that something bad just happened */
-	while (1) {
-#if defined(PIOS_LED_HEARTBEAT)
-		PIOS_LED_Toggle(PIOS_LED_HEARTBEAT);
-#endif	/* PIOS_LED_HEARTBEAT */
-		PIOS_DELAY_WaitmS(100);
-	}
+	/* Do some PIOS_LED_HEARTBEAT to user that something bad just happened */
+	PIOS_LED_Off(PIOS_LED_HEARTBEAT); \
+	for(;;) { \
+		PIOS_LED_Toggle(PIOS_LED_HEARTBEAT); \
+		PIOS_DELAY_WaitmS(100); \
+	};
 
 	return 0;
+}
+/**
+ * Initialisation task.
+ *
+ * Runs board and module initialisation, then terminates.
+ */
+void
+initTask(void *parameters)
+{
+	/* board driver init */
+	PIOS_Board_Init();
+
+	/* Initialize modules */
+	MODULE_INITIALISE_ALL;
+
+	/* terminate this task */
+	vTaskDelete(NULL);
 }
 
 /**
