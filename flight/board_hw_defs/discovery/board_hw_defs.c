@@ -29,8 +29,6 @@
 #include <pios_config.h>
 #include <pios_board_info.h>
 
-#define BOARD_REVISION_CC   1
-#define BOARD_REVISION_CC3D 2
 
 #if defined(PIOS_INCLUDE_LED)
 
@@ -228,8 +226,8 @@ void PIOS_SPI_flash_irq_handler(void);
 void DMA1_Stream0_IRQHandler(void) __attribute__((alias("PIOS_SPI_flash_irq_handler")));
 void DMA1_Stream5_IRQHandler(void) __attribute__((alias("PIOS_SPI_flash_irq_handler")));
 static const struct pios_spi_cfg pios_spi_flash_cfg = {
-	.regs = SPI3,
-	.remap = GPIO_AF_SPI3,
+	.regs = SPI2,
+	.remap = GPIO_AF_SPI2,
 	.init = {
 		.SPI_Mode              = SPI_Mode_Master,
 		.SPI_Direction         = SPI_Direction_2Lines_FullDuplex,
@@ -258,7 +256,7 @@ static const struct pios_spi_cfg pios_spi_flash_cfg = {
 			.channel = DMA1_Stream0,
 			.init = {
 				.DMA_Channel            = DMA_Channel_0,
-				.DMA_PeripheralBaseAddr = (uint32_t) & (SPI3->DR),
+				.DMA_PeripheralBaseAddr = (uint32_t) & (SPI2->DR),
 				.DMA_DIR                = DMA_DIR_PeripheralToMemory,
 				.DMA_PeripheralInc      = DMA_PeripheralInc_Disable,
 				.DMA_MemoryInc          = DMA_MemoryInc_Enable,
@@ -277,7 +275,7 @@ static const struct pios_spi_cfg pios_spi_flash_cfg = {
 			.channel = DMA1_Stream5,
 			.init = {
 				.DMA_Channel            = DMA_Channel_0,
-				.DMA_PeripheralBaseAddr = (uint32_t) & (SPI3->DR),
+				.DMA_PeripheralBaseAddr = (uint32_t) & (SPI2->DR),
 				.DMA_DIR                = DMA_DIR_MemoryToPeripheral,
 				.DMA_PeripheralInc      = DMA_PeripheralInc_Disable,
 				.DMA_MemoryInc          = DMA_MemoryInc_Enable,
@@ -293,9 +291,9 @@ static const struct pios_spi_cfg pios_spi_flash_cfg = {
 		},
 	},
 	.sclk = {
-		.gpio = GPIOC,
+		.gpio = GPIOB,
 		.init = {
-			.GPIO_Pin = GPIO_Pin_10,
+			.GPIO_Pin = GPIO_Pin_13,
 			.GPIO_Speed = GPIO_Speed_100MHz,
 			.GPIO_Mode = GPIO_Mode_AF,
 			.GPIO_OType = GPIO_OType_PP,
@@ -303,9 +301,9 @@ static const struct pios_spi_cfg pios_spi_flash_cfg = {
 		},
 	},
 	.miso = {
-		.gpio = GPIOC,
+		.gpio = GPIOB,
 		.init = {
-			.GPIO_Pin = GPIO_Pin_11,
+			.GPIO_Pin = GPIO_Pin_14,
 			.GPIO_Speed = GPIO_Speed_50MHz,
 			.GPIO_Mode = GPIO_Mode_AF,
 			.GPIO_OType = GPIO_OType_PP,
@@ -313,9 +311,9 @@ static const struct pios_spi_cfg pios_spi_flash_cfg = {
 		},
 	},
 	.mosi = {
-		.gpio = GPIOC,
+		.gpio = GPIOB,
 		.init = {
-			.GPIO_Pin = GPIO_Pin_12,
+			.GPIO_Pin = GPIO_Pin_15,
 			.GPIO_Speed = GPIO_Speed_50MHz,
 			.GPIO_Mode = GPIO_Mode_AF,
 			.GPIO_OType = GPIO_OType_PP,
@@ -324,9 +322,9 @@ static const struct pios_spi_cfg pios_spi_flash_cfg = {
 	},
 	.slave_count = 1,
 	.ssel = { {
-		.gpio = GPIOD,
+		.gpio = GPIOB,
 		.init = {
-			.GPIO_Pin = GPIO_Pin_2,
+			.GPIO_Pin = GPIO_Pin_12,
 			.GPIO_Speed = GPIO_Speed_50MHz,
 			.GPIO_Mode  = GPIO_Mode_OUT,
 			.GPIO_OType = GPIO_OType_PP,
@@ -818,6 +816,7 @@ static const struct pios_tim_channel pios_tim_servoport_all_pins[] = {
 		},
 		.remap = GPIO_AF_TIM9,		
 	},
+	/*
 	{
 		.timer = TIM11,
 		.timer_chan = TIM_Channel_1,
@@ -834,6 +833,7 @@ static const struct pios_tim_channel pios_tim_servoport_all_pins[] = {
 		},
 		.remap = GPIO_AF_TIM11,
 	},
+	*/
 	{
 		.timer = TIM10,
 		.timer_chan = TIM_Channel_1,
@@ -939,6 +939,7 @@ const struct pios_servo_cfg pios_servo_cfg = {
 #if defined(PIOS_INCLUDE_PWM) || defined(PIOS_INCLUDE_PPM)
 #include <pios_pwm_priv.h>
 static const struct pios_tim_channel pios_tim_rcvrport_all_channels[] = {
+		/*
 	{
 		.timer = TIM4,
 		.timer_chan = TIM_Channel_4,
@@ -1003,6 +1004,7 @@ static const struct pios_tim_channel pios_tim_rcvrport_all_channels[] = {
 		},
 		.remap = GPIO_AF_TIM4,
 	},
+	*/
 	{
 		.timer = TIM1,
 		.timer_chan = TIM_Channel_4,
