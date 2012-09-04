@@ -172,12 +172,14 @@ static void AttitudeTask(void *parameters)
 {
 	uint8_t init = 0;
 	AlarmsClear(SYSTEMALARMS_ALARM_ATTITUDE);
-	
+
+#if defined(PIOS_INCLUDE_ADXL345)
 	// Set critical error and wait until the accel is producing data
 	while(PIOS_ADXL345_FifoElements() == 0) {
 		AlarmsSet(SYSTEMALARMS_ALARM_ATTITUDE, SYSTEMALARMS_ALARM_CRITICAL);
 		PIOS_WDG_UpdateFlag(PIOS_WDG_ATTITUDE);
 	}
+#endif
 	
 	const struct pios_board_info * bdinfo = &pios_board_info_blob;
 	
@@ -263,6 +265,7 @@ float gyros_passed[3];
  */
 static int32_t updateSensors(AccelsData * accels, GyrosData * gyros)
 {
+#if defined(PIOS_INCLUDE_ADXL345)
 	struct pios_adxl345_data accel_data;
 	float gyro[4];
 	
@@ -354,6 +357,7 @@ static int32_t updateSensors(AccelsData * accels, GyrosData * gyros)
 
 	GyrosSet(gyros);
 	AccelsSet(accels);
+#endif
 
 	return 0;
 }
