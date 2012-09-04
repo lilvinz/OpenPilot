@@ -1,4 +1,5 @@
 BOARD_TYPE          := 0x04
+#must be rev.2 to match cc3d ini attitude.c which leads to using of the mpu_6000 sensor
 BOARD_REVISION      := 0x02
 BOOTLOADER_VERSION  := 0x03
 HW_TYPE             := 0x01
