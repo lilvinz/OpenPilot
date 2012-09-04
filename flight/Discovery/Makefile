@@ -96,7 +96,7 @@ OPTMODULES += Fault
 endif
 
 # List of mandatory modules to include
-MODULES = Attitude/revolution Stabilization Actuator ManualControl FirmwareIAP
+MODULES = Attitude Stabilization Actuator ManualControl FirmwareIAP
 # Telemetry must be last to grab the optional modules (why?)
 MODULES += Telemetry
 
@@ -285,7 +285,7 @@ LINKERSCRIPTPATH = $(PIOSSTM32F4XX)
 # (Note: 3 is not always the best optimization level. See avr-libc FAQ.)
 
 ifeq ($(DEBUG),YES)
-OPT = 1
+OPT = 0
 else
 OPT = s
 endif
