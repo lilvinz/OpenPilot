@@ -93,7 +93,10 @@ void PIOS_LED_On(uint32_t led_id)
 
 	const struct pios_led * led = &(led_cfg->leds[led_id]);
 
-	GPIO_ResetBits(led->pin.gpio, led->pin.init.GPIO_Pin);
+	if (led->invert)
+		GPIO_SetBits(led->pin.gpio, led->pin.init.GPIO_Pin);
+	else
+		GPIO_ResetBits(led->pin.gpio, led->pin.init.GPIO_Pin);
 }
 
 /**
@@ -111,7 +114,10 @@ void PIOS_LED_Off(uint32_t led_id)
 
 	const struct pios_led * led = &(led_cfg->leds[led_id]);
 
-	GPIO_SetBits(led->pin.gpio, led->pin.init.GPIO_Pin);
+	if (led->invert)
+		GPIO_ResetBits(led->pin.gpio, led->pin.init.GPIO_Pin);
+	else
+		GPIO_SetBits(led->pin.gpio, led->pin.init.GPIO_Pin);
 }
 
 /**
