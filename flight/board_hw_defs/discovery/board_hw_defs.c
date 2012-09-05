@@ -46,6 +46,7 @@ static const struct pios_led pios_leds[] = {
 			},
 		},
 		.remap = 0,
+		.invert = true,
 	},
 	[PIOS_LED_ORANGE] = {
 		.pin = {
@@ -59,6 +60,7 @@ static const struct pios_led pios_leds[] = {
 			},
 		},
 		.remap = 0,
+		.invert = true,
 	},
 	[PIOS_LED_RED] = {
 		.pin = {
@@ -72,6 +74,7 @@ static const struct pios_led pios_leds[] = {
 			},
 		},
 		.remap = 0,
+		.invert = true,
 	},
 	[PIOS_LED_BLUE] = {
 		.pin = {
@@ -85,6 +88,7 @@ static const struct pios_led pios_leds[] = {
 			},
 		},
 		.remap = 0,
+		.invert = true,
 	},
 };
 
