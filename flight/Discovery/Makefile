@@ -305,6 +305,9 @@ DEBUGF = dwarf-2
 CDEFS = -DSTM32F4XX_$(MODEL)
 CDEFS += -DUSE_STDPERIPH_DRIVER
 CDEFS += -DUSE_$(BOARD)
+ifeq ($(DEBUG), YES)
+CDEFS += -DDEBUG
+endif
 ifeq ($(ENABLE_DEBUG_PINS), YES)
 CDEFS += -DPIOS_ENABLE_DEBUG_PINS
 endif
@@ -492,7 +495,35 @@ $(eval $(call PARTIAL_COMPILE_ARM_TEMPLATE, SRCARM))
 
 $(OUTDIR)/$(TARGET).bin.o: $(OUTDIR)/$(TARGET).bin
 
-$(eval $(call OPFW_TEMPLATE,$(OUTDIR)/$(TARGET).bin,$(BOARD_TYPE),$(BOARD_REVISION)))
+$(OUTDIR)/$(TARGET).lss: $(OUTDIR)/$(TARGET).elf
+	$(V1) $(OBJDUMP) -h -S -C -r $< > $@
+
+
+# OpenPilot firmware image template
+#  $(1) = path to bin file
+#  $(2) = boardtype in hex
+#  $(3) = board revision in hex
+define OPFW_TEMPLATE2
+FORCE: $(OUTDIR)/$(TARGET).lss
+
+$(1).firmwareinfo.c: $(1) $(TOP)/make/templates/firmwareinfotemplate.c FORCE
+	@echo $(MSG_FWINFO) $$(call toprel, $$@)
+	$(V1) python $(TOP)/make/scripts/version-info.py \
+		--path=$(TOP) \
+		--template=$(TOP)/make/templates/firmwareinfotemplate.c \
+		--outfile=$$@ \
+		--image=$(1) \
+		--type=$(2) \
+		--revision=$(3)
+
+$(eval $(call COMPILE_C_TEMPLATE, $(1).firmwareinfo.c))
+
+$(OUTDIR)/$(notdir $(basename $(1))).opfw : $(1) $(1).firmwareinfo.bin
+	@echo $(MSG_OPFIRMWARE) $$(call toprel, $$@)
+	$(V1) cat $(1) $(1).firmwareinfo.bin > $$@
+endef
+
+$(eval $(call OPFW_TEMPLATE2,$(OUTDIR)/$(TARGET).bin,$(BOARD_TYPE),$(BOARD_REVISION)))
 
 # Add jtag targets (program and wipe)
 $(eval $(call JTAG_TEMPLATE,$(OUTDIR)/$(TARGET).bin,$(FW_BANK_BASE),$(FW_BANK_SIZE),$(OPENOCD_JTAG_CONFIG),$(OPENOCD_CONFIG)))
