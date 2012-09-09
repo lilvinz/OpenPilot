@@ -120,9 +120,15 @@ void PIOS_LED_Toggle(uint32_t led_id)
 	const struct pios_led * led = &(led_cfg->leds[led_id]);
 	
 	if (GPIO_ReadOutputDataBit(led->pin.gpio, led->pin.init.GPIO_Pin) == Bit_SET) {
-		PIOS_LED_On(led_id);
+		if (led->invert)
+			PIOS_LED_Off(led_id);
+		else
+			PIOS_LED_On(led_id);
 	} else {
-		PIOS_LED_Off(led_id);
+		if (led->invert)
+			PIOS_LED_On(led_id);
+		else
+			PIOS_LED_Off(led_id);
 	}
 }
 
