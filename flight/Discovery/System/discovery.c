@@ -129,6 +129,14 @@ initTask(void *parameters)
 	/* board driver init */
 	PIOS_Board_Init();
 
+#ifdef ERASE_FLASH
+	PIOS_Flash_Jedec_EraseChip();
+#if defined(PIOS_LED_HEARTBEAT)
+	PIOS_LED_Off(PIOS_LED_HEARTBEAT);
+#endif	/* PIOS_LED_HEARTBEAT */
+	while (1) ;
+#endif
+
 	/* Initialize modules */
 	MODULE_INITIALISE_ALL;
 

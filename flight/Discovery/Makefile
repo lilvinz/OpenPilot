@@ -37,6 +37,9 @@ OUTDIR := $(TOP)/build/$(TARGET)
 # Set to YES for debugging
 DEBUG ?= NO
 
+# Set to YES to build a FW version that will erase all flash memory
+ERASE_FLASH ?= NO
+
 # Set to YES when using Code Sourcery toolchain
 CODE_SOURCERY ?= NO
 
@@ -259,7 +262,6 @@ else
 CFLAGS += -Os
 endif
 
-
    
 # common architecture-specific flags from the device-specific library makefile
 CFLAGS += $(ARCHFLAGS)
@@ -271,6 +273,10 @@ CFLAGS += -DDIAG_TASKS
 # to the board file or something
 CFLAGS += -DSTM32F4XX
 CFLAGS += -DMEM_SIZE=1024000000
+
+ifeq ($(ERASE_FLASH), YES)
+CDEFS += -DERASE_FLASH
+endif
 
 # Output format. (can be ihex or binary or both)
 #  binary to create a load-image in raw-binary format i.e. for SAM-BA,
