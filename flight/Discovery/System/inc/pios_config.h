@@ -66,7 +66,7 @@
 #define PIOS_INCLUDE_USART
 #define PIOS_INCLUDE_USB
 #define PIOS_INCLUDE_USB_HID
-//#define PIOS_INCLUDE_USB_CDC  doesnt compile
+//#define PIOS_INCLUDE_USB_CDC  //not implemented for f4xx yet
 #define PIOS_INCLUDE_COM
 #define PIOS_INCLUDE_SETTINGS
 //#define PIOS_INCLUDE_GPIO
@@ -76,21 +76,22 @@
 
 //#define PIOS_INCLUDE_ADXL345
 #define PIOS_INCLUDE_FLASH
-#define PIOS_INCLUDE_MPU6000
-#define PIOS_MPU6000_ACCEL
+//#define PIOS_INCLUDE_MPU6000
+//#define PIOS_MPU6000_ACCEL
 
 /* A really shitty setting saving implementation */
 #define PIOS_INCLUDE_FLASH_SECTOR_SETTINGS
 
 /* Alarm Thresholds */
-#define HEAP_LIMIT_WARNING             220
-#define HEAP_LIMIT_CRITICAL             40
-#define IRQSTACK_LIMIT_WARNING		100
-#define IRQSTACK_LIMIT_CRITICAL		60
-#define CPULOAD_LIMIT_WARNING		85
+#define HEAP_LIMIT_WARNING		4000
+#define HEAP_LIMIT_CRITICAL		1000
+#define IRQSTACK_LIMIT_WARNING		150
+#define IRQSTACK_LIMIT_CRITICAL		80
+#define CPULOAD_LIMIT_WARNING		80
 #define CPULOAD_LIMIT_CRITICAL		95
 
 /* Task stack sizes */
+/*
 #define PIOS_ACTUATOR_STACK_SIZE       1020
 #define PIOS_MANUAL_STACK_SIZE          800
 #define PIOS_SYSTEM_STACK_SIZE          660
@@ -98,12 +99,17 @@
 #define PIOS_EVENTDISPATCHER_STACK_SIZE 130
 #define IDLE_COUNTS_PER_SEC_AT_NO_LOAD 1995998
 //#define PIOS_QUATERNION_STABILIZATION
+*/
 
 // This can't be too high to stop eventdispatcher thread overflowing
-#define PIOS_EVENTDISAPTCHER_QUEUE      10
+//#define PIOS_EVENTDISAPTCHER_QUEUE      10
 
-/* PIOS Initcall infrastructure */
-#define PIOS_INCLUDE_INITCALL
+/* Flags that alter behaviors - mostly to lower resources for CC */
+#define PIOS_INCLUDE_INITCALL           /* Include init call structures */
+#define PIOS_TELEM_PRIORITY_QUEUE       /* Enable a priority queue in telemetry */
+#define PIOS_QUATERNION_STABILIZATION   /* Stabilization options */
+//#define PIOS_GPS_SETS_HOMELOCATION      /* GPS options */
+
 
 #endif /* PIOS_CONFIG_H */
 /**

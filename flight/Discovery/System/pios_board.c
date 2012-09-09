@@ -226,7 +226,7 @@ void PIOS_Board_Init(void) {
 
 #ifndef ERASE_FLASH
 	/* Initialize watchdog as early as possible to catch faults during init */
-	PIOS_WDG_Init();
+	//PIOS_WDG_Init();
 #endif
 
 	/* Initialize the alarms library */
@@ -238,11 +238,10 @@ void PIOS_Board_Init(void) {
 	/* Set up pulse timers */
 	PIOS_TIM_InitClock(&tim_1_cfg);
 	PIOS_TIM_InitClock(&tim_3_cfg);
+	PIOS_TIM_InitClock(&tim_2_cfg);
 	PIOS_TIM_InitClock(&tim_4_cfg);
-	PIOS_TIM_InitClock(&tim_5_cfg);
+	PIOS_TIM_InitClock(&tim_8_cfg);
 	PIOS_TIM_InitClock(&tim_9_cfg);
-	PIOS_TIM_InitClock(&tim_10_cfg);
-	PIOS_TIM_InitClock(&tim_11_cfg);
 
 	/* Check for repeated boot failures */
 	PIOS_IAP_Init();
@@ -349,7 +348,8 @@ void PIOS_Board_Init(void) {
 
 	switch (hwsettings_usb_hidport) {
 	case HWSETTINGS_USB_HIDPORT_DISABLED:
-		break;
+// always enable USB HID because CDC is not ported to F4XX yet
+//		break;
 	case HWSETTINGS_USB_HIDPORT_USBTELEMETRY:
 #if defined(PIOS_INCLUDE_COM)
 		{
@@ -379,6 +379,10 @@ void PIOS_Board_Init(void) {
 	
 #endif	/* PIOS_INCLUDE_USB */
 
+
+
+
+#if 0
 	/* Configure the main IO port */
 	uint8_t hwsettings_DSMxBind;
 	HwSettingsDSMxBindGet(&hwsettings_DSMxBind);
@@ -571,10 +575,14 @@ void PIOS_Board_Init(void) {
 		break;
 	}
 
+#endif
+
+
+
 	/* Configure the rcvr port */
 	uint8_t hwsettings_rcvrport;
 	HwSettingsCC_RcvrPortGet(&hwsettings_rcvrport);
-
+#if 0
 	switch (hwsettings_rcvrport) {
 	case HWSETTINGS_CC_RCVRPORT_DISABLED:
 		break;
@@ -608,6 +616,8 @@ void PIOS_Board_Init(void) {
 #endif	/* PIOS_INCLUDE_PPM */
 		break;
 	}
+
+#endif
 
 #if defined(PIOS_INCLUDE_GCSRCVR)
 	GCSReceiverInitialize();
