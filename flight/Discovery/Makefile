@@ -96,7 +96,11 @@ OPTMODULES += Fault
 endif
 
 # List of mandatory modules to include
-#MODULES = Attitude Stabilization Actuator ManualControl FirmwareIAP
+#MODULES += Attitude
+MODULES += Stabilization
+MODULES += Actuator
+MODULES += ManualControl
+MODULES += FirmwareIAP
 # Telemetry must be last to grab the optional modules (why?)
 MODULES += Telemetry
 
