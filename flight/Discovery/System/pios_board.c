@@ -125,17 +125,17 @@ static void PIOS_Board_configure_dsm(const struct pios_usart_cfg *pios_usart_dsm
 
 
 /**
- * Configuration for the MPU6000 chip
+ * Configuration for the MPU6050 chip
  */
-#if defined(PIOS_INCLUDE_MPU6000)
+#if defined(PIOS_INCLUDE_MPU6050)
 #include "pios_mpu6000.h"
-static const struct pios_exti_cfg pios_exti_mpu6000_cfg __exti_config = {
-	.vector = PIOS_MPU6000_IRQHandler,
-	.line = EXTI_Line8,
+static const struct pios_exti_cfg pios_exti_mpu6050_cfg __exti_config = {
+	.vector = PIOS_MPU6050_IRQHandler,
+	.line = EXTI_Line11,
 	.pin = {
 		.gpio = GPIOD,
 		.init = {
-			.GPIO_Pin = GPIO_Pin_8,
+			.GPIO_Pin = GPIO_Pin_11,
 			.GPIO_Speed = GPIO_Speed_100MHz,
 			.GPIO_Mode = GPIO_Mode_IN,
 			.GPIO_OType = GPIO_OType_OD,
@@ -144,7 +144,7 @@ static const struct pios_exti_cfg pios_exti_mpu6000_cfg __exti_config = {
 	},
 	.irq = {
 		.init = {
-			.NVIC_IRQChannel = EXTI9_5_IRQn,
+			.NVIC_IRQChannel = EXTI15_10_IRQn,
 			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
 			.NVIC_IRQChannelSubPriority = 0,
 			.NVIC_IRQChannelCmd = ENABLE,
@@ -152,7 +152,7 @@ static const struct pios_exti_cfg pios_exti_mpu6000_cfg __exti_config = {
 	},
 	.exti = {
 		.init = {
-			.EXTI_Line = EXTI_Line8, // matches above GPIO pin
+			.EXTI_Line = EXTI_Line11, // matches above GPIO pin
 			.EXTI_Mode = EXTI_Mode_Interrupt,
 			.EXTI_Trigger = EXTI_Trigger_Rising,
 			.EXTI_LineCmd = ENABLE,
@@ -160,20 +160,20 @@ static const struct pios_exti_cfg pios_exti_mpu6000_cfg __exti_config = {
 	},
 };
 
-static const struct pios_mpu6000_cfg pios_mpu6000_cfg = {
-	.exti_cfg = &pios_exti_mpu6000_cfg,
-	.Fifo_store = PIOS_MPU6000_FIFO_TEMP_OUT | PIOS_MPU6000_FIFO_GYRO_X_OUT | PIOS_MPU6000_FIFO_GYRO_Y_OUT | PIOS_MPU6000_FIFO_GYRO_Z_OUT,
+static const struct pios_mpu6050_cfg pios_mpu6050_cfg = {
+	.exti_cfg = &pios_exti_mpu6050_cfg,
+	.Fifo_store = PIOS_MPU6050_FIFO_TEMP_OUT | PIOS_MPU6050_FIFO_GYRO_X_OUT | PIOS_MPU6050_FIFO_GYRO_Y_OUT | PIOS_MPU6050_FIFO_GYRO_Z_OUT,
 	// Clock at 8 khz, downsampled by 8 for 1khz
 	.Smpl_rate_div = 7,
-	.interrupt_cfg = PIOS_MPU6000_INT_CLR_ANYRD,
-	.interrupt_en = PIOS_MPU6000_INTEN_DATA_RDY,
-	.User_ctl = PIOS_MPU6000_USERCTL_FIFO_EN,
-	.Pwr_mgmt_clk = PIOS_MPU6000_PWRMGMT_PLL_X_CLK,
-	.accel_range = PIOS_MPU6000_ACCEL_8G,
-	.gyro_range = PIOS_MPU6000_SCALE_500_DEG,
-	.filter = PIOS_MPU6000_LOWPASS_256_HZ
+	.interrupt_cfg = PIOS_MPU6050_INT_CLR_ANYRD,
+	.interrupt_en = PIOS_MPU6050_INTEN_DATA_RDY,
+	.User_ctl = PIOS_MPU6050_USERCTL_FIFO_EN,
+	.Pwr_mgmt_clk = PIOS_MPU6050_PWRMGMT_PLL_X_CLK,
+	.accel_range = PIOS_MPU6050_ACCEL_8G,
+	.gyro_range = PIOS_MPU6050_SCALE_500_DEG,
+	.filter = PIOS_MPU6050_LOWPASS_256_HZ
 };
-#endif /* PIOS_INCLUDE_MPU6000 */
+#endif /* PIOS_INCLUDE_MPU6050 */
 
 static const struct flashfs_cfg flashfs_m25p_cfg = {
 	.table_magic = 0x85FB3D35,
@@ -181,7 +181,7 @@ static const struct flashfs_cfg flashfs_m25p_cfg = {
 	.obj_table_start = 0x00000010,
 	.obj_table_end = 0x00010000,
 	.sector_size = 0x00010000,
-	.chip_size = 0x00200000,
+	.chip_size = 0x00800000,
 };
 
 static const struct pios_flash_jedec_cfg flash_m25p_cfg = {
@@ -195,7 +195,6 @@ static const struct pios_flash_jedec_cfg flash_m25p_cfg = {
  * initializes all the core subsystems on this specific hardware
  * called from System/openpilot.c
  */
-int32_t init_test;
 void PIOS_Board_Init(void) {
 
 	/* Delay system */
@@ -236,8 +235,10 @@ void PIOS_Board_Init(void) {
 	TaskMonitorInitialize();
 
 	/* Set up pulse timers */
+	//inputs
 	PIOS_TIM_InitClock(&tim_1_cfg);
 	PIOS_TIM_InitClock(&tim_3_cfg);
+	//outputs
 	PIOS_TIM_InitClock(&tim_2_cfg);
 	PIOS_TIM_InitClock(&tim_4_cfg);
 	PIOS_TIM_InitClock(&tim_8_cfg);
@@ -264,77 +265,13 @@ void PIOS_Board_Init(void) {
 	bool usb_hid_present = false;
 	bool usb_cdc_present = false;
 
-#if defined(PIOS_INCLUDE_USB_CDC)
-	if (PIOS_USB_DESC_HID_CDC_Init()) {
-		PIOS_Assert(0);
-	}
-	usb_hid_present = true;
-	usb_cdc_present = true;
-#else
 	if (PIOS_USB_DESC_HID_ONLY_Init()) {
 		PIOS_Assert(0);
 	}
 	usb_hid_present = true;
-#endif
 
 	uint32_t pios_usb_id;
 	PIOS_USB_Init(&pios_usb_id, &pios_usb_main_cfg);
-
-
-#if defined(PIOS_INCLUDE_USB_CDC)
-
-	uint8_t hwsettings_usb_vcpport;
-	/* Configure the USB VCP port */
-	HwSettingsUSB_VCPPortGet(&hwsettings_usb_vcpport);
-
-	if (!usb_cdc_present) {
-		/* Force VCP port function to disabled if we haven't advertised VCP in our USB descriptor */
-		hwsettings_usb_vcpport = HWSETTINGS_USB_VCPPORT_DISABLED;
-	}
-
-	switch (hwsettings_usb_vcpport) {
-	case HWSETTINGS_USB_VCPPORT_DISABLED:
-		break;
-	case HWSETTINGS_USB_VCPPORT_USBTELEMETRY:
-#if defined(PIOS_INCLUDE_COM)
-		{
-			uint32_t pios_usb_cdc_id;
-			if (PIOS_USB_CDC_Init(&pios_usb_cdc_id, &pios_usb_cdc_cfg, pios_usb_id)) {
-				PIOS_Assert(0);
-			}
-			uint8_t * rx_buffer = (uint8_t *) pvPortMalloc(PIOS_COM_TELEM_USB_RX_BUF_LEN);
-			uint8_t * tx_buffer = (uint8_t *) pvPortMalloc(PIOS_COM_TELEM_USB_TX_BUF_LEN);
-			PIOS_Assert(rx_buffer);
-			PIOS_Assert(tx_buffer);
-			if (PIOS_COM_Init(&pios_com_telem_usb_id, &pios_usb_cdc_com_driver, pios_usb_cdc_id,
-						rx_buffer, PIOS_COM_TELEM_USB_RX_BUF_LEN,
-						tx_buffer, PIOS_COM_TELEM_USB_TX_BUF_LEN)) {
-				PIOS_Assert(0);
-			}
-		}
-#endif	/* PIOS_INCLUDE_COM */
-		break;
-	case HWSETTINGS_USB_VCPPORT_COMBRIDGE:
-#if defined(PIOS_INCLUDE_COM)
-		{
-			uint32_t pios_usb_cdc_id;
-			if (PIOS_USB_CDC_Init(&pios_usb_cdc_id, &pios_usb_cdc_cfg, pios_usb_id)) {
-				PIOS_Assert(0);
-			}
-			uint8_t * rx_buffer = (uint8_t *) pvPortMalloc(PIOS_COM_BRIDGE_RX_BUF_LEN);
-			uint8_t * tx_buffer = (uint8_t *) pvPortMalloc(PIOS_COM_BRIDGE_TX_BUF_LEN);
-			PIOS_Assert(rx_buffer);
-			PIOS_Assert(tx_buffer);
-			if (PIOS_COM_Init(&pios_com_vcp_id, &pios_usb_cdc_com_driver, pios_usb_cdc_id,
-						rx_buffer, PIOS_COM_BRIDGE_RX_BUF_LEN,
-						tx_buffer, PIOS_COM_BRIDGE_TX_BUF_LEN)) {
-				PIOS_Assert(0);
-			}
-		}
-#endif	/* PIOS_INCLUDE_COM */
-		break;
-	}
-#endif	/* PIOS_INCLUDE_USB_CDC */
 
 #if defined(PIOS_INCLUDE_USB_HID)
 	/* Configure the usb HID port */
@@ -619,36 +556,25 @@ void PIOS_Board_Init(void) {
 
 #endif
 
-#if defined(PIOS_INCLUDE_GCSRCVR)
-	GCSReceiverInitialize();
-	uint32_t pios_gcsrcvr_id;
-	PIOS_GCSRCVR_Init(&pios_gcsrcvr_id);
-	uint32_t pios_gcsrcvr_rcvr_id;
-	if (PIOS_RCVR_Init(&pios_gcsrcvr_rcvr_id, &pios_gcsrcvr_rcvr_driver, pios_gcsrcvr_id)) {
-		PIOS_Assert(0);
+
+#if defined(PIOS_INCLUDE_PWM)
+	{
+		uint32_t pios_pwm_id;
+		PIOS_PWM_Init(&pios_pwm_id, &pios_pwm_cfg);
+
+		uint32_t pios_pwm_rcvr_id;
+		if (PIOS_RCVR_Init(&pios_pwm_rcvr_id, &pios_pwm_rcvr_driver, pios_pwm_id)) {
+			PIOS_Assert(0);
+		}
+		pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_PWM] = pios_pwm_rcvr_id;
 	}
-	pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_GCS] = pios_gcsrcvr_rcvr_id;
-#endif	/* PIOS_INCLUDE_GCSRCVR */
+#endif	/* PIOS_INCLUDE_PWM */
 
 
-#ifndef PIOS_DEBUG_ENABLE_DEBUG_PINS
-	switch (hwsettings_rcvrport) {
-		case HWSETTINGS_RV_RCVRPORT_DISABLED:
-		case HWSETTINGS_RV_RCVRPORT_PWM:
-		case HWSETTINGS_RV_RCVRPORT_PPM:
-			/* Set up the servo outputs */
-			PIOS_Servo_Init(&pios_servo_cfg);
-			break;
-		case HWSETTINGS_RV_RCVRPORT_PPMOUTPUTS:
-		case HWSETTINGS_RV_RCVRPORT_OUTPUTS:
-			//PIOS_Servo_Init(&pios_servo_rcvr_cfg);
-			//TODO: Prepare the configurations on board_hw_defs and handle here:
-			PIOS_Servo_Init(&pios_servo_cfg);
-			break;
-	}
-#else
-	PIOS_DEBUG_Init(&pios_tim_servo_all_channels, NELEMENTS(pios_tim_servo_all_channels));
-#endif	/* PIOS_DEBUG_ENABLE_DEBUG_PINS */
+#if defined(PIOS_INCLUDE_SERVO)
+	/* Set up the servo outputs */
+	PIOS_Servo_Init(&pios_servo_cfg);
+#endif
 
 
 #if defined(PIOS_INCLUDE_MPU6000)
