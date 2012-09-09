@@ -367,13 +367,12 @@ static int32_t updateSensors(AccelsData * accels, GyrosData * gyros)
  * @param[in] attitudeRaw Populate the UAVO instead of saving right here
  * @return 0 if successfull, -1 if not
  */
-struct pios_mpu6000_data mpu6000_data;
 static int32_t updateSensorsCC3D(AccelsData * accelsData, GyrosData * gyrosData)
 {
 	float accels[3], gyros[3];
 	
 #if defined(PIOS_INCLUDE_MPU6000)
-	
+	struct pios_mpu6000_data mpu6000_data;
 	xQueueHandle queue = PIOS_MPU6000_GetQueue();
 	
 	if(xQueueReceive(queue, (void *) &mpu6000_data, SENSOR_PERIOD) == errQUEUE_EMPTY)
