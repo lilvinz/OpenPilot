@@ -1,8 +1,11 @@
- /**
+/**
  ******************************************************************************
- *
+ * @addtogroup OpenPilotSystem OpenPilot System
+ * @{
+ * @addtogroup OpenPilotCore OpenPilot Core
+ * @{
  * @file       pios_board.h
- * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2010.
+ * @author     The OpenPilot Team, http://www.openpilot.org Copyright (C) 2012.
  * @brief      Defines board hardware for the OpenPilot Version 1.1 hardware.
  * @see        The GNU Public License (GPL) Version 3
  *
@@ -24,8 +27,8 @@
  */
 
 
-#ifndef STM32103CB_CC_H_
-#define STM32103CB_CC_H_
+#ifndef STM3210E_INS_H_
+#define STM3210E_INS_H_
 
 #include <stdbool.h>
 
@@ -62,7 +65,6 @@ TIM8  |           |           |           |
 /* Channel 11 -                                 */
 /* Channel 12 -                                 */
 
-
 //------------------------
 // BOOTLOADER_SETTINGS
 //------------------------
@@ -83,7 +85,7 @@ TIM8  |           |           |           |
 
 
 //-------------------------
-// SPI
+// PIOS_SPI
 // See also pios_board.c
 //-------------------------
 #define PIOS_SPI_MAX_DEVS			1
@@ -97,22 +99,21 @@ TIM8  |           |           |           |
 #define PIOS_WDG_STABILIZATION   0x0002
 #define PIOS_WDG_ATTITUDE        0x0004
 #define PIOS_WDG_MANUAL          0x0008
+#define PIOS_WDG_SENSORS         0x0010
 
 //------------------------
 // PIOS_I2C
 // See also pios_board.c
 //------------------------
 #define PIOS_I2C_MAX_DEVS			1
-extern uint32_t pios_i2c_flexi_adapter_id;
-#define PIOS_I2C_MAIN_ADAPTER			(pios_i2c_flexi_adapter_id)
-#define PIOS_I2C_ESC_ADAPTER			(pios_i2c_flexi_adapter_id)
-#define PIOS_I2C_BMP085_ADAPTER			(pios_i2c_flexi_adapter_id)
+extern uint32_t pios_i2c_gyro_accel_adapter_id;
+#define PIOS_I2C_MPU6050_ADAPTER		(pios_i2c_gyro_accel_adapter_id)
 
 
 //-------------------------
 // PIOS_USART
 //-------------------------
-#define PIOS_USART_MAX_DEVS			2
+#define PIOS_USART_MAX_DEVS			3
 
 
 //-------------------------
@@ -163,8 +164,8 @@ extern uint32_t pios_com_telem_usb_id;
 #define PIOS_SYSCLK										168000000
 //	Peripherals that belongs to APB1 are:
 //	DAC			|PWR				|CAN1,2
-//	I2C1,2,3		|UART4,5			|USART3,2
-//	I2S3Ext		|SPI3/I2S3		|SPI2/I2S2
+//	I2C1,2,3	|UART4,5			|USART3,2
+//	I2S3Ext		|SPI3/I2S3			|SPI2/I2S2
 //	I2S2Ext		|IWDG				|WWDG
 //	RTC/BKP reg	
 // TIM2,3,4,5,6,7,12,13,14
@@ -199,7 +200,6 @@ extern uint32_t pios_com_telem_usb_id;
 //------------------------
 #define PIOS_RCVR_MAX_DEVS           3
 #define PIOS_RCVR_MAX_CHANNELS       12
-#define PIOS_GCSRCVR_TIMEOUT_MS		 100
 
 //-------------------------
 // Receiver PPM input
@@ -211,13 +211,7 @@ extern uint32_t pios_com_telem_usb_id;
 // Receiver PWM input
 //-------------------------
 #define PIOS_PWM_MAX_DEVS			1
-#define PIOS_PWM_NUM_INPUTS         6
-
-//-------------------------
-// Receiver S.Bus input
-//-------------------------
-#define PIOS_SBUS_MAX_DEVS			1
-#define PIOS_SBUS_NUM_INPUTS		(16+2)
+#define PIOS_PWM_NUM_INPUTS         8
 
 //-------------------------
 // Receiver DSM input
@@ -234,7 +228,7 @@ extern uint32_t pios_com_telem_usb_id;
 //--------------------------
 // Timer controller settings
 //--------------------------
-#define PIOS_TIM_MAX_DEVS			3
+#define PIOS_TIM_MAX_DEVS			6
 
 //-------------------------
 // ADC
@@ -244,15 +238,9 @@ extern uint32_t pios_com_telem_usb_id;
 //-------------------------
 // USB
 //-------------------------
-//#define PIOS_USB_HID_MAX_DEVS                   1
-//#define PIOS_USB_ENABLED                        1
-//#define PIOS_USB_DETECT_GPIO_PORT               GPIOC
-//#define PIOS_USB_MAX_DEVS                       1
-//#define PIOS_USB_DETECT_GPIO_PIN                GPIO_Pin_15
-
 #define PIOS_USB_MAX_DEVS                       1
 #define PIOS_USB_ENABLED                        1 /* Should remove all references to this */
 #define PIOS_USB_HID_MAX_DEVS                   1
 
 
-#endif /* STM32103CB_AHRS_H_ */
+#endif /* STM3210E_INS_H_ */
