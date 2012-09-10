@@ -58,7 +58,7 @@
 /* Supported USART-based PIOS modules */
 #define PIOS_INCLUDE_TELEMETRY_RF
 #define PIOS_INCLUDE_GPS
-#define PIOS_GPS_MINIMAL
+//#define PIOS_GPS_MINIMAL
 
 #define PIOS_INCLUDE_SERVO
 #define PIOS_INCLUDE_SPI
@@ -74,10 +74,9 @@
 #define PIOS_INCLUDE_RTC
 #define PIOS_INCLUDE_WDG
 
-//#define PIOS_INCLUDE_ADXL345
 #define PIOS_INCLUDE_FLASH
-//#define PIOS_INCLUDE_MPU6050
-//#define PIOS_MPU6050_ACCEL
+#define PIOS_INCLUDE_MPU6050
+#define PIOS_MPU6050_ACCEL
 
 /* A really shitty setting saving implementation */
 #define PIOS_INCLUDE_FLASH_SECTOR_SETTINGS
