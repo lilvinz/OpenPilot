@@ -60,7 +60,7 @@
 #include <pios_board_info.h>
  
 // Private constants
-#define STACK_SIZE_BYTES 540
+#define STACK_SIZE_BYTES 640
 #define TASK_PRIORITY (tskIDLE_PRIORITY+3)
 
 #define SENSOR_PERIOD 4
@@ -188,6 +188,9 @@ static void AttitudeTask(void *parameters)
 	if(cc3d) {
 #if defined(PIOS_INCLUDE_MPU6000)
 		gyro_test = PIOS_MPU6000_Test();
+#endif
+#if defined(PIOS_INCLUDE_MPU6050)
+		gyro_test = PIOS_MPU6050_Test();
 #endif
 	} else {
 #if defined(PIOS_INCLUDE_ADXL345)
@@ -372,7 +375,7 @@ static int32_t updateSensorsCC3D(AccelsData * accelsData, GyrosData * gyrosData)
 	float accels[3], gyros[3];
 	
 #if defined(PIOS_INCLUDE_MPU6000)
-	struct pios_mpu6000_data mpu6000_data;
+	static struct pios_mpu6000_data mpu6000_data;
 	xQueueHandle queue = PIOS_MPU6000_GetQueue();
 	
 	if(xQueueReceive(queue, (void *) &mpu6000_data, SENSOR_PERIOD) == errQUEUE_EMPTY)
@@ -392,8 +395,28 @@ static int32_t updateSensorsCC3D(AccelsData * accelsData, GyrosData * gyrosData)
 
 	gyrosData->temperature = 35.0f + ((float) mpu6000_data.temperature + 512.0f) / 340.0f;
 	accelsData->temperature = 35.0f + ((float) mpu6000_data.temperature + 512.0f) / 340.0f;
-#endif
+#elif defined(PIOS_INCLUDE_MPU6050)
+	static struct pios_mpu6050_data mpu6050_data;
+	xQueueHandle queue = PIOS_MPU6050_GetQueue();
 
+	if(xQueueReceive(queue, (void *) &mpu6050_data, SENSOR_PERIOD) == errQUEUE_EMPTY)
+		return -1;	// Error, no data
+
+	// Do not read raw sensor data in simulation mode
+	if (GyrosReadOnly() || AccelsReadOnly())
+		return 0;
+
+	gyros[0] = -mpu6050_data.gyro_y * PIOS_MPU6050_GetScale();
+	gyros[1] = -mpu6050_data.gyro_x * PIOS_MPU6050_GetScale();
+	gyros[2] = -mpu6050_data.gyro_z * PIOS_MPU6050_GetScale();
+
+	accels[0] = -mpu6050_data.accel_y * PIOS_MPU6050_GetAccelScale();
+	accels[1] = -mpu6050_data.accel_x * PIOS_MPU6050_GetAccelScale();
+	accels[2] = -mpu6050_data.accel_z * PIOS_MPU6050_GetAccelScale();
+
+	gyrosData->temperature = 35.0f + ((float) mpu6050_data.temperature + 512.0f) / 340.0f;
+	accelsData->temperature = 35.0f + ((float) mpu6050_data.temperature + 512.0f) / 340.0f;
+#endif
 	if(rotate) {
 		// TODO: rotate sensors too so stabilization is well behaved
 		float vec_out[3];

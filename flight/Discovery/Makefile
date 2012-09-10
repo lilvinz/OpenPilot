@@ -53,7 +53,7 @@ FLASH_TOOL = OPENOCD
 
 # List of modules to include
 #MODULES += Sensors
-#MODULES += Attitude
+MODULES += Attitude
 MODULES += ManualControl
 MODULES += Stabilization
 #MODULES += Altitude
@@ -153,6 +153,7 @@ include $(PIOS)/STM32F4xx/library.mk
 
 ## PIOS Hardware (Common)
 SRC += $(PIOSCOMMON)/pios_mpu6000.c
+SRC += $(PIOSCOMMON)/pios_mpu6050.c
 SRC += $(PIOSCOMMON)/pios_bma180.c
 SRC += $(PIOSCOMMON)/pios_l3gd20.c
 SRC += $(PIOSCOMMON)/pios_hmc5883.c
@@ -256,7 +257,7 @@ LINKERSCRIPTPATH = $(PIOSSTM32F4XX)
 
 ifeq ($(DEBUG),YES)
 CFLAGS += -O0
-CFLAGS += -DGENERAL_COV
+CFLAGS += -DGENERAL_COV -DDEBUG
 CFLAGS += -finstrument-functions -ffixed-r10
 else
 CFLAGS += -Os

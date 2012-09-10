@@ -128,7 +128,7 @@ static void PIOS_Board_configure_dsm(const struct pios_usart_cfg *pios_usart_dsm
  * Configuration for the MPU6050 chip
  */
 #if defined(PIOS_INCLUDE_MPU6050)
-#include "pios_mpu6000.h"
+#include "pios_mpu6050.h"
 static const struct pios_exti_cfg pios_exti_mpu6050_cfg __exti_config = {
 	.vector = PIOS_MPU6050_IRQHandler,
 	.line = EXTI_Line11,
@@ -145,7 +145,7 @@ static const struct pios_exti_cfg pios_exti_mpu6050_cfg __exti_config = {
 	.irq = {
 		.init = {
 			.NVIC_IRQChannel = EXTI15_10_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
 			.NVIC_IRQChannelSubPriority = 0,
 			.NVIC_IRQChannelCmd = ENABLE,
 		},
@@ -163,8 +163,8 @@ static const struct pios_exti_cfg pios_exti_mpu6050_cfg __exti_config = {
 static const struct pios_mpu6050_cfg pios_mpu6050_cfg = {
 	.exti_cfg = &pios_exti_mpu6050_cfg,
 	.Fifo_store = PIOS_MPU6050_FIFO_TEMP_OUT | PIOS_MPU6050_FIFO_GYRO_X_OUT | PIOS_MPU6050_FIFO_GYRO_Y_OUT | PIOS_MPU6050_FIFO_GYRO_Z_OUT,
-	// Clock at 8 khz, downsampled by 8 for 1khz
-	.Smpl_rate_div = 7,
+	// Clock at 8kHz, downsampled by 8 for 1kHz
+	.Smpl_rate_div = 8 - 1,
 	.interrupt_cfg = PIOS_MPU6050_INT_CLR_ANYRD,
 	.interrupt_en = PIOS_MPU6050_INTEN_DATA_RDY,
 	.User_ctl = PIOS_MPU6050_USERCTL_FIFO_EN,
@@ -225,7 +225,9 @@ void PIOS_Board_Init(void) {
 
 #ifndef ERASE_FLASH
 	/* Initialize watchdog as early as possible to catch faults during init */
-	//PIOS_WDG_Init();
+#ifndef DEBUG
+	PIOS_WDG_Init();
+#endif
 #endif
 
 	/* Initialize the alarms library */
@@ -577,16 +579,15 @@ void PIOS_Board_Init(void) {
 #endif
 
 
-#if defined(PIOS_INCLUDE_MPU6000)
-	// Set up the SPI interface to the serial flash 
-	/* Set up the SPI interface to the accelerometer*/
-	if (PIOS_SPI_Init(&pios_spi_gyro_accel_id, &pios_spi_gyro_accel_cfg)) {
+#if defined(PIOS_INCLUDE_MPU6050)
+	/* Set up the I2C interface to the accelerometer*/
+	if (PIOS_I2C_Init(&pios_i2c_gyro_accel_id, &pios_i2c_gyro_accel_cfg)) {
 		PIOS_DEBUG_Assert(0);
 	}
 	
-	PIOS_MPU6000_Init(pios_spi_gyro_accel_id, 0, &pios_mpu6000_cfg);
-	init_test = PIOS_MPU6000_Test();
-#endif /* PIOS_INCLUDE_MPU6000 */
+	PIOS_MPU6050_Init(pios_i2c_gyro_accel_id, 0x68, &pios_mpu6050_cfg);
+	volatile uint8_t init_test = PIOS_MPU6050_Test();
+#endif /* PIOS_INCLUDE_MPU6050 */
 
 #if defined(PIOS_INCLUDE_GPIO)
 	PIOS_GPIO_Init();
