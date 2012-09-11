@@ -326,7 +326,7 @@ void PIOS_I2C_gyro_accel_er_irq_handler(void)
  */
 #include <pios_dsm_priv.h>
 
-static const struct pios_usart_cfg pios_usart1_dsm_aux_cfg = {
+static const struct pios_usart_cfg pios_usart1_dsm_cfg = {
 	.regs = USART1,
 	.remap = GPIO_AF_USART1,
 	.init = {
@@ -358,7 +358,52 @@ static const struct pios_usart_cfg pios_usart1_dsm_aux_cfg = {
 	},
 };
 
-static const struct pios_dsm_cfg pios_dsm_aux_cfg = {
+static const struct pios_dsm_cfg pios_usart1_dsm_aux_cfg = {
+	.bind = {
+		.gpio = GPIOB,
+		.init = {
+			.GPIO_Pin   = GPIO_Pin_7,
+			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Mode  = GPIO_Mode_OUT,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd  = GPIO_PuPd_NOPULL
+		},
+	},
+};
+
+static const struct pios_usart_cfg pios_usart2_dsm_cfg = {
+	.regs = USART2,
+	.remap = GPIO_AF_USART2,
+	.init = {
+		.USART_BaudRate = 115200,
+		.USART_WordLength = USART_WordLength_8b,
+		.USART_Parity = USART_Parity_No,
+		.USART_StopBits = USART_StopBits_1,
+		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
+		.USART_Mode = USART_Mode_Rx,
+	},
+	.irq = {
+		.init = {
+			.NVIC_IRQChannel = USART2_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
+			.NVIC_IRQChannelSubPriority = 0,
+			.NVIC_IRQChannelCmd = ENABLE,
+		},
+	},
+	.rx = {
+		.gpio = GPIOA,
+		.init = {
+			.GPIO_Pin   = GPIO_Pin_3,
+			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Mode  = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd  = GPIO_PuPd_UP
+		},
+		.pin_source = GPIO_PinSource3,
+	},
+};
+
+static const struct pios_dsm_cfg pios_usart2_dsm_aux_cfg = {
 	.bind = {
 		.gpio = GPIOA,
 		.init = {
@@ -371,7 +416,41 @@ static const struct pios_dsm_cfg pios_dsm_aux_cfg = {
 	},
 };
 
+
 #endif	/* PIOS_INCLUDE_DSM */
+
+static const struct pios_usart_cfg pios_usart1_cfg = {
+	.regs = USART1,
+	.remap = GPIO_AF_USART1,
+	.init = {
+		.USART_BaudRate = 57600,
+		.USART_WordLength = USART_WordLength_8b,
+		.USART_Parity = USART_Parity_No,
+		.USART_StopBits = USART_StopBits_1,
+		.USART_HardwareFlowControl =
+		USART_HardwareFlowControl_None,
+		.USART_Mode = USART_Mode_Rx,
+	},
+	.irq = {
+		.init = {
+			.NVIC_IRQChannel = USART1_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
+			.NVIC_IRQChannelSubPriority = 0,
+			.NVIC_IRQChannelCmd = ENABLE,
+		},
+	},
+	.rx = {
+		.gpio = GPIOB,
+		.init = {
+			.GPIO_Pin   = GPIO_Pin_7,
+			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Mode  = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd  = GPIO_PuPd_UP
+		},
+		.pin_source = GPIO_PinSource7,
+	},
+};
 
 static const struct pios_usart_cfg pios_usart2_cfg = {
 	.regs = USART2,
@@ -381,8 +460,7 @@ static const struct pios_usart_cfg pios_usart2_cfg = {
 		.USART_WordLength = USART_WordLength_8b,
 		.USART_Parity = USART_Parity_No,
 		.USART_StopBits = USART_StopBits_1,
-		.USART_HardwareFlowControl =
-		USART_HardwareFlowControl_None,
+		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
 		.USART_Mode = USART_Mode_Rx | USART_Mode_Tx,
 	},
 	.irq = {
@@ -425,8 +503,7 @@ static const struct pios_usart_cfg pios_usart3_cfg = {
 		.USART_WordLength = USART_WordLength_8b,
 		.USART_Parity = USART_Parity_No,
 		.USART_StopBits = USART_StopBits_1,
-		.USART_HardwareFlowControl =
-		USART_HardwareFlowControl_None,
+		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
 		.USART_Mode = USART_Mode_Rx | USART_Mode_Tx,
 	},
 	.irq = {
