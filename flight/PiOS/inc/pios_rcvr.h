@@ -40,18 +40,13 @@ struct pios_rcvr_driver {
 extern int32_t PIOS_RCVR_Read(uint32_t rcvr_id, uint8_t channel);
 
 /*! Define error codes for PIOS_RCVR_Get */
-
-/* note: by default the PIOS_RCVR_TIMEOUT is 0 and not -1 but my erx9 powered TX
-   sends 0 as a valid DSM channel position. 
-   todo: check if chaning this to something other than 0 has implications for other
-   RX types than DSM */
 enum PIOS_RCVR_errors {
 	/*! Indicates that a failsafe condition or missing receiver detected for that channel */
-	PIOS_RCVR_TIMEOUT = -1,
+	PIOS_RCVR_TIMEOUT = 0,
 	/*! Channel is invalid for this driver (usually out of range supported) */
-	PIOS_RCVR_INVALID = -2,
+	PIOS_RCVR_INVALID = -1,
 	/*! Indicates that the driver for this channel has not been initialized */
-	PIOS_RCVR_NODRIVER = -3
+	PIOS_RCVR_NODRIVER = -2
 };
 
 #endif /* PIOS_RCVR_H */
