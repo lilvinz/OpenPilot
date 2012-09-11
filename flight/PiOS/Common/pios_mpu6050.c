@@ -36,7 +36,7 @@
 
 /* Local Variables */
 #define MPU6050_TASK_PRIORITY	(tskIDLE_PRIORITY + configMAX_PRIORITIES - 1)	// max priority
-#define MPU6050_TASK_STACK		(1024 / 4)										// XXX this seems excessive
+#define MPU6050_TASK_STACK		(384 / 4)
 
 #include "fifo_buffer.h"
 
