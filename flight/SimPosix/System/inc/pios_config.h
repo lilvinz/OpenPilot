@@ -108,7 +108,7 @@
 #define CPULOAD_LIMIT_CRITICAL		95
 
 // This actually needs calibrating
-#define IDLE_COUNTS_PER_SEC_AT_NO_LOAD (8379692UL)
+#define IDLE_COUNTS_PER_SEC_AT_NO_LOAD (8379692)
 
 #define REVOLUTION
 #define SIMPOSIX
