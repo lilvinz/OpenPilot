@@ -462,7 +462,7 @@ void PIOS_MPU6000_IRQHandler(void)
 	data.gyro_z = mpu6000_rec_buf[7] << 8 | mpu6000_rec_buf[8];
 #endif
 
-	xQueueSend(dev->queue, (void *) &data, 0);
+	xQueueSendFromISR(dev->queue, (void *) &data, 0);
 	
 	mpu6000_irq++;
 	

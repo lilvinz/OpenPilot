@@ -375,7 +375,7 @@ void PIOS_L3GD20_IRQHandler(void)
 	memcpy((uint8_t *) &(data.gyro_x), &rec[1], 6);
 	data.temperature = PIOS_L3GD20_GetReg(PIOS_L3GD20_OUT_TEMP);
 	
-	xQueueSend(dev->queue, (void *) &data, 0);
+	xQueueSendFromISR(dev->queue, (void *) &data, 0);
 }
 
 #endif /* L3GD20 */
