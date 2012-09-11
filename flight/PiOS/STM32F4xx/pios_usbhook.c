@@ -445,10 +445,6 @@ static USBD_Class_cb_TypeDef class_callbacks = {
 };
 
 
-//static USBD_Class_cb_TypeDef class_callbacks;
-//static USBD_DEVICE device_callbacks;
-//static USBD_Usr_cb_TypeDef user_callbacks;
-
 void PIOS_USBHOOK_Activate(void)
 {
 	USBD_Init(&pios_usb_otg_core_handle,
