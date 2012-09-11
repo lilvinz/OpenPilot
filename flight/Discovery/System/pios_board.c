@@ -530,7 +530,7 @@ void PIOS_Board_Init(void) {
 		PIOS_DEBUG_Assert(0);
 	}
 	
-	PIOS_MPU6050_Init(pios_i2c_gyro_accel_id, 0x68, &pios_mpu6050_cfg);
+	PIOS_MPU6050_Init(pios_i2c_gyro_accel_id, PIOS_MPU6050_I2C_ADD_A0_LOW, &pios_mpu6050_cfg);
 	{
 		uint8_t init_test;
 		init_test = PIOS_MPU6050_Test();

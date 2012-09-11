@@ -35,6 +35,8 @@
 #include "pios.h"
 
 /* MPU6050 Addresses */
+#define PIOS_MPU6050_I2C_ADD_A0_LOW       0x68
+#define PIOS_MPU6050_I2C_ADD_A0_HIGH      0x69
 #define PIOS_MPU6050_SMPLRT_DIV_REG       0X19
 #define PIOS_MPU6050_DLPF_CFG_REG         0X1A
 #define PIOS_MPU6050_GYRO_CFG_REG         0X1B
