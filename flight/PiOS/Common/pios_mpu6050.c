@@ -34,7 +34,7 @@
 
 #if defined(PIOS_INCLUDE_MPU6050)
 
-/* Local Variables */
+/* Private constants */
 #define MPU6050_TASK_PRIORITY	(tskIDLE_PRIORITY + configMAX_PRIORITIES - 1)	// max priority
 #define MPU6050_TASK_STACK		(384 / 4)
 
@@ -52,7 +52,7 @@ struct mpu6050_dev {
 	uint8_t i2c_addr;
 	xQueueHandle queue;
 	xTaskHandle TaskHandle;
-	xQueueHandle isr_queue;
+	xSemaphoreHandle data_ready_sema;
 	const struct pios_mpu6050_cfg * cfg;
 	enum pios_mpu6050_dev_magic magic;
 };
@@ -91,8 +91,8 @@ static struct mpu6050_dev * PIOS_MPU6050_alloc(void)
 		return NULL;
 	}
 	
-	mpu6050_dev->isr_queue = xQueueCreate(1, sizeof(int));
-	if(mpu6050_dev->isr_queue == NULL) {
+	mpu6050_dev->data_ready_sema = xSemaphoreCreateMutex();
+	if(mpu6050_dev->data_ready_sema == NULL) {
 		vPortFree(mpu6050_dev);
 		return NULL;
 	}
@@ -380,7 +380,7 @@ float PIOS_MPU6050_GetAccelScale()
  */
 uint8_t PIOS_MPU6050_Test(void)
 {
-	/* Verify that ID matches (MPU6050 ID is 0x69) */
+	/* Verify that ID matches (MPU6050 ID is 0x68) */
 	int32_t mpu6050_id = PIOS_MPU6050_ReadID();
 	if(mpu6050_id < 0)
 		return -1;
@@ -425,8 +425,7 @@ bool PIOS_MPU6050_IRQHandler(void)
 {
     portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
 
-    int Temp = 0;
-    xQueueSendToBackFromISR(dev->isr_queue, &Temp, &xHigherPriorityTaskWoken);
+    xSemaphoreGiveFromISR(dev->data_ready_sema, &xHigherPriorityTaskWoken);
 
     return xHigherPriorityTaskWoken == pdTRUE;
 }
@@ -435,9 +434,9 @@ void PIOS_MPU6050_Task(void *parameters)
 {
 	while (1)
 	{
-		//Wait for signal from interrupt
-		static int Temp;
-		xQueueReceive(dev->isr_queue, &Temp, portMAX_DELAY);
+		//Wait for data ready interrupt
+		if (xSemaphoreTake(dev->data_ready_sema, portMAX_DELAY) != pdTRUE)
+			continue;
 
 		static uint32_t timeval;
 		mpu6050_interval_us = PIOS_DELAY_DiffuS(timeval);
