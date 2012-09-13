@@ -43,8 +43,6 @@
 #include "usbd_req.h"		/* USBD_CtlError */
 #include "usb_dcd_int.h"	/* USBD_OTG_ISR_Handler */
 
-static USB_OTG_CORE_HANDLE pios_usb_otg_core_handle;
-
 /*
  * External API
  */
@@ -74,6 +72,34 @@ void PIOS_USBHOOK_RegisterConfig(uint8_t config_id, const uint8_t * desc, uint16
 	Config_Descriptor.length     = desc_size;
 }
 
+static USB_OTG_CORE_HANDLE pios_usb_otg_core_handle;
+static USBD_Class_cb_TypeDef class_callbacks;
+static USBD_DEVICE device_callbacks;
+static USBD_Usr_cb_TypeDef user_callbacks;
+
+void PIOS_USBHOOK_Activate(void)
+{
+	USBD_Init(&pios_usb_otg_core_handle,
+		USB_OTG_FS_CORE_ID,
+		&device_callbacks,
+		&class_callbacks,
+		&user_callbacks);
+}
+
+void PIOS_USBHOOK_Deactivate(void)
+{
+	DCD_DevDisconnect(&pios_usb_otg_core_handle);
+	USBD_DeInit(&pios_usb_otg_core_handle);
+	USB_OTG_StopDevice(&pios_usb_otg_core_handle);
+}
+
+void OTG_FS_IRQHandler(void)
+{
+	if(!USBD_OTG_ISR_Handler(&pios_usb_otg_core_handle)) {
+		/* spurious interrupt, disable IRQ */
+	  
+	}
+}
 
 struct usb_if_entry {
   struct pios_usb_ifops *ifops;
@@ -444,27 +470,3 @@ static USBD_Class_cb_TypeDef class_callbacks = {
 #endif	/* USB_SUPPORT_USER_STRING_DESC */
 };
 
-
-void PIOS_USBHOOK_Activate(void)
-{
-	USBD_Init(&pios_usb_otg_core_handle,
-		USB_OTG_FS_CORE_ID,
-		&device_callbacks,
-		&class_callbacks,
-		&user_callbacks);
-}
-
-void PIOS_USBHOOK_Deactivate(void)
-{
-	DCD_DevDisconnect(&pios_usb_otg_core_handle);
-	USBD_DeInit(&pios_usb_otg_core_handle);
-	USB_OTG_StopDevice(&pios_usb_otg_core_handle);
-}
-
-void OTG_FS_IRQHandler(void)
-{
-	if(!USBD_OTG_ISR_Handler(&pios_usb_otg_core_handle)) {
-		/* spurious interrupt, disable IRQ */
-
-	}
-}
