@@ -43,7 +43,7 @@
 /* Global Variables */
 
 enum pios_mpu6050_dev_magic {
-	PIOS_MPU6050_DEV_MAGIC = 0x9da9b3ef,
+	PIOS_MPU6050_DEV_MAGIC = 0xf21d26a2,
 };
 
 #define PIOS_MPU6050_MAX_DOWNSAMPLE 2
