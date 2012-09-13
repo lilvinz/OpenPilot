@@ -427,8 +427,7 @@ static const struct pios_usart_cfg pios_usart1_cfg = {
 		.USART_WordLength = USART_WordLength_8b,
 		.USART_Parity = USART_Parity_No,
 		.USART_StopBits = USART_StopBits_1,
-		.USART_HardwareFlowControl =
-		USART_HardwareFlowControl_None,
+		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
 		.USART_Mode = USART_Mode_Rx,
 	},
 	.irq = {

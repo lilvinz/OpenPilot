@@ -81,9 +81,18 @@
 /* A really shitty setting saving implementation */
 #define PIOS_INCLUDE_FLASH_SECTOR_SETTINGS
 
+/* Other Interfaces */
+//#define PIOS_INCLUDE_I2C_ESC
+
+/* Flags that alter behaviors - mostly to lower resources for CC */
+#define PIOS_INCLUDE_INITCALL           /* Include init call structures */
+#define PIOS_TELEM_PRIORITY_QUEUE       /* Enable a priority queue in telemetry */
+#define PIOS_QUATERNION_STABILIZATION   /* Stabilization options */
+//#define PIOS_GPS_SETS_HOMELOCATION      /* GPS options */
+
 /* Alarm Thresholds */
-#define HEAP_LIMIT_WARNING			4000
-#define HEAP_LIMIT_CRITICAL			1000
+#define HEAP_LIMIT_WARNING		4000
+#define HEAP_LIMIT_CRITICAL		1000
 #define IRQSTACK_LIMIT_WARNING		150
 #define IRQSTACK_LIMIT_CRITICAL		80
 #define CPULOAD_LIMIT_WARNING		80
@@ -92,15 +101,7 @@
 // This actually needs calibrating
 #define IDLE_COUNTS_PER_SEC_AT_NO_LOAD (8379692)
 
-// This can't be too high to stop eventdispatcher thread overflowing
-//#define PIOS_EVENTDISAPTCHER_QUEUE      10
-
-/* Flags that alter behaviors - mostly to lower resources for CC */
-#define PIOS_INCLUDE_INITCALL           /* Include init call structures */
-//#define PIOS_TELEM_PRIORITY_QUEUE       /* Enable a priority queue in telemetry */
-//#define PIOS_QUATERNION_STABILIZATION   /* Stabilization options */
-//#define PIOS_GPS_SETS_HOMELOCATION      /* GPS options */
-
+#define REVOLUTION
 
 #endif /* PIOS_CONFIG_H */
 /**

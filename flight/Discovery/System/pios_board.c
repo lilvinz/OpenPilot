@@ -287,8 +287,7 @@ void PIOS_Board_Init(void) {
 
 	switch (hwsettings_usb_hidport) {
 	case HWSETTINGS_USB_HIDPORT_DISABLED:
-// always enable USB HID because CDC is not ported to F4XX yet
-//		break;
+		break;
 	case HWSETTINGS_USB_HIDPORT_USBTELEMETRY:
 #if defined(PIOS_INCLUDE_COM)
 		{
@@ -381,64 +380,14 @@ void PIOS_Board_Init(void) {
 	case HWSETTINGS_CC_FLEXIPORT_TELEMETRY:
 #if defined(PIOS_INCLUDE_TELEMETRY_RF)
 		PIOS_Board_configure_com(&pios_usart2_cfg, PIOS_COM_TELEM_RF_RX_BUF_LEN, PIOS_COM_TELEM_RF_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_telem_rf_id);
-/*
-		{
-			uint32_t pios_usart_generic_id;
-			if (PIOS_USART_Init(&pios_usart_generic_id, &pios_usart_generic_flexi_cfg)) {
-				PIOS_Assert(0);
-			}
-			uint8_t * rx_buffer = (uint8_t *) pvPortMalloc(PIOS_COM_TELEM_RF_RX_BUF_LEN);
-			uint8_t * tx_buffer = (uint8_t *) pvPortMalloc(PIOS_COM_TELEM_RF_TX_BUF_LEN);
-			PIOS_Assert(rx_buffer);
-			PIOS_Assert(tx_buffer);
-			if (PIOS_COM_Init(&pios_com_telem_rf_id, &pios_usart_com_driver, pios_usart_generic_id,
-  					  rx_buffer, PIOS_COM_TELEM_RF_RX_BUF_LEN,
-					  tx_buffer, PIOS_COM_TELEM_RF_TX_BUF_LEN)) {
-				PIOS_Assert(0);
-			}
-		}
-*/
 #endif /* PIOS_INCLUDE_TELEMETRY_RF */
 		break;
 	case HWSETTINGS_CC_FLEXIPORT_COMBRIDGE:
 		PIOS_Board_configure_com(&pios_usart2_cfg, PIOS_COM_BRIDGE_RX_BUF_LEN, PIOS_COM_BRIDGE_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_bridge_id);
-/*
-		{
-			uint32_t pios_usart_generic_id;
-			if (PIOS_USART_Init(&pios_usart_generic_id, &pios_usart2_cfg)) {
-				PIOS_Assert(0);
-			}
-
-			uint8_t * rx_buffer = (uint8_t *) pvPortMalloc(PIOS_COM_BRIDGE_RX_BUF_LEN);
-			uint8_t * tx_buffer = (uint8_t *) pvPortMalloc(PIOS_COM_BRIDGE_TX_BUF_LEN);
-			PIOS_Assert(rx_buffer);
-			PIOS_Assert(tx_buffer);
-			if (PIOS_COM_Init(&pios_com_bridge_id, &pios_usart_com_driver, pios_usart_generic_id,
-						rx_buffer, PIOS_COM_BRIDGE_RX_BUF_LEN,
-						tx_buffer, PIOS_COM_BRIDGE_TX_BUF_LEN)) {
-				PIOS_Assert(0);
-			}
-		}
-*/
 		break;
 	case HWSETTINGS_CC_FLEXIPORT_GPS:
 #if defined(PIOS_INCLUDE_GPS)
 		PIOS_Board_configure_com(&pios_usart2_cfg, PIOS_COM_GPS_RX_BUF_LEN, -1, &pios_usart_com_driver, &pios_com_gps_id);
-/*
-		{
-			uint32_t pios_usart_generic_id;
-			if (PIOS_USART_Init(&pios_usart_generic_id, &pios_usart2_cfg)) {
-				PIOS_Assert(0);
-			}
-			uint8_t * rx_buffer = (uint8_t *) pvPortMalloc(PIOS_COM_GPS_RX_BUF_LEN);
-			PIOS_Assert(rx_buffer);
-			if (PIOS_COM_Init(&pios_com_gps_id, &pios_usart_com_driver, pios_usart_generic_id,
-					  rx_buffer, PIOS_COM_GPS_RX_BUF_LEN,
-					  NULL, 0)) {
-				PIOS_Assert(0);
-			}
-		}
-*/
 #endif	/* PIOS_INCLUDE_GPS */
 		break;
 	case HWSETTINGS_CC_FLEXIPORT_DSM2:
@@ -473,6 +422,7 @@ void PIOS_Board_Init(void) {
 		// not supported for this hardware
 		break;
 	}
+
 
 
 
@@ -516,11 +466,23 @@ void PIOS_Board_Init(void) {
 	}
 
 
-
-
-#if defined(PIOS_INCLUDE_SERVO)
-	/* Set up the servo outputs */
-	PIOS_Servo_Init(&pios_servo_cfg);
+#ifndef PIOS_DEBUG_ENABLE_DEBUG_PINS
+	switch (hwsettings_rcvrport) {
+		case HWSETTINGS_RV_RCVRPORT_DISABLED:
+		case HWSETTINGS_RV_RCVRPORT_PWM:
+		case HWSETTINGS_RV_RCVRPORT_PPM:
+			/* Set up the servo outputs */
+			PIOS_Servo_Init(&pios_servo_cfg);
+			break;
+		case HWSETTINGS_RV_RCVRPORT_PPMOUTPUTS:
+		case HWSETTINGS_RV_RCVRPORT_OUTPUTS:
+			//PIOS_Servo_Init(&pios_servo_rcvr_cfg);
+			//TODO: Prepare the configurations on board_hw_defs and handle here:
+			PIOS_Servo_Init(&pios_servo_cfg);
+			break;
+	}
+#else
+	PIOS_DEBUG_Init(&pios_tim_servo_all_channels, NELEMENTS(pios_tim_servo_all_channels));
 #endif
 
 
