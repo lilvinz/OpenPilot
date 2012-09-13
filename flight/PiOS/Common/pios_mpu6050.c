@@ -421,15 +421,14 @@ uint32_t mpu6050_interval_us;
 uint32_t mpu6050_time_us;
 uint32_t mpu6050_transfer_size;
 
-void PIOS_MPU6050_IRQHandler(void)
+bool PIOS_MPU6050_IRQHandler(void)
 {
     portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
 
     int Temp = 0;
     xQueueSendToBackFromISR(dev->isr_queue, &Temp, &xHigherPriorityTaskWoken);
 
-    //we can do this here because we know that no other EXI PINS are served on this ISR
-    portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
+    return xHigherPriorityTaskWoken == pdTRUE;
 }
 
 void PIOS_MPU6050_Task(void *parameters)

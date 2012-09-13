@@ -158,7 +158,7 @@ extern int32_t PIOS_MPU6050_ReadID();
 extern uint8_t PIOS_MPU6050_Test();
 extern float PIOS_MPU6050_GetScale();
 extern float PIOS_MPU6050_GetAccelScale();
-extern void PIOS_MPU6050_IRQHandler(void);
+extern bool PIOS_MPU6050_IRQHandler(void);
 
 #endif /* PIOS_MPU6050_H */
 
