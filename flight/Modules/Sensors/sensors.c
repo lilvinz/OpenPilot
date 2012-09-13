@@ -187,6 +187,10 @@ static void SensorsTask(void *parameters)
 			gyro_test = PIOS_MPU6000_Test();
 			accel_test = gyro_test;
 #endif
+#if defined(PIOS_INCLUDE_MPU6050)
+			gyro_test = PIOS_MPU6050_Test();
+			accel_test = gyro_test;
+#endif
 			break;
 		default:
 			PIOS_DEBUG_Assert(0);
@@ -204,11 +208,13 @@ static void SensorsTask(void *parameters)
 		}
 	}
 	
+#ifdef PIOS_INCLUDE_COM_AUX
 	// If debugging connect callback
 	if(pios_com_aux_id != 0) {
 		BaroAltitudeConnectCallback(&sensorsUpdatedCb);
 		GPSPositionConnectCallback(&sensorsUpdatedCb);
 	}
+#endif
 	
 	// Main task loop
 	lastSysTime = xTaskGetTickCount();
@@ -331,7 +337,39 @@ static void SensorsTask(void *parameters)
 				accelsData.temperature = 35.0f + ((float) mpu6000_data.temperature + 512.0f) / 340.0f;
 			}
 #endif /* PIOS_INCLUDE_MPU6000 */
-				break;
+#if defined(PIOS_INCLUDE_MPU6050)
+			{
+				struct pios_mpu6050_data mpu6050_data;
+				xQueueHandle queue = PIOS_MPU6050_GetQueue();
+
+				while(xQueueReceive(queue, (void *) &mpu6050_data, gyro_samples == 0 ? 10 : 0) != errQUEUE_EMPTY)
+				{
+					gyro_accum[0] += mpu6050_data.gyro_x;
+					gyro_accum[1] += mpu6050_data.gyro_y;
+					gyro_accum[2] += mpu6050_data.gyro_z;
+
+					accel_accum[0] += mpu6050_data.accel_x;
+					accel_accum[1] += mpu6050_data.accel_y;
+					accel_accum[2] += mpu6050_data.accel_z;
+
+					gyro_samples ++;
+					accel_samples ++;
+				}
+
+				if (gyro_samples == 0) {
+					PIOS_MPU6050_ReadGyros(&mpu6050_data);
+					error = true;
+					continue;
+				}
+
+				gyro_scaling = PIOS_MPU6050_GetScale();
+				accel_scaling = PIOS_MPU6050_GetAccelScale();
+
+				gyrosData.temperature = 35.0f + ((float) mpu6050_data.temperature + 512.0f) / 340.0f;
+				accelsData.temperature = 35.0f + ((float) mpu6050_data.temperature + 512.0f) / 340.0f;
+			}
+#endif /* PIOS_INCLUDE_MPU6050 */
+			break;
 			default:
 				PIOS_DEBUG_Assert(0);
 		}
