@@ -692,6 +692,11 @@ EF_BOARDS  := $(ALL_BOARDS)
 BL_BOARDS  := $(filter-out ins, $(BL_BOARDS))
 BU_BOARDS  := $(filter-out ins, $(BU_BOARDS))
 
+# FIXME: The discovery build doesn't have a bootloader updater and erase flash
+#        yet so we need to filter them out to prevent errors.
+BU_BOARDS  := $(filter-out discovery, $(BU_BOARDS))
+EF_BOARDS  := $(filter-out discovery, $(EF_BOARDS))
+
 # SimPosix doesn't have a BL, BU or EF target so we need to
 # filter them out to prevent errors on the all_flight target.
 BL_BOARDS  := $(filter-out simposix, $(BL_BOARDS))
