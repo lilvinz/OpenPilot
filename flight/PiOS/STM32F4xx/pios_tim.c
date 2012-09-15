@@ -92,6 +92,7 @@ int32_t PIOS_TIM_InitClock(const struct pios_tim_clock_cfg * cfg)
 	PIOS_DEBUG_Assert(cfg);
 
 	/* Enable appropriate clock to timer module */
+	/*
 	switch((uint32_t) cfg->timer) {
 		case (uint32_t)TIM1:
 			RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE);
@@ -129,6 +130,7 @@ int32_t PIOS_TIM_InitClock(const struct pios_tim_clock_cfg * cfg)
 			break;
 #endif
 	}
+	*/ // commented out for now as f4 starts all clocks
 
 	/* Configure the dividers for this timer */
 	TIM_TimeBaseInit(cfg->timer, cfg->time_base_init);
@@ -414,28 +416,33 @@ static void PIOS_TIM_1_CC_irq_handler (void)
 }
 
 // The rest of TIM1 interrupts are overlapped
-void TIM1_BRK_TIM9_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_9_CC_irq_handler")));
-static void PIOS_TIM_9_CC_irq_handler (void)
+void TIM1_BRK_TIM9_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_1_BRK_TIM_9_irq_handler")));
+static void PIOS_TIM_1_BRK_TIM_9_irq_handler (void)
 {
-	// TODO: Check for TIM1_BRK
-	PIOS_TIM_generic_irq_handler (TIM9);
-}
-
-void TIM1_UP_TIM10_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_10_CC_irq_handler")));
-static void PIOS_TIM_10_CC_irq_handler (void)
-{
-	if (TIM_GetITStatus(TIM1, TIM_IT_Update)) {
+	if (TIM_GetITStatus(TIM1, TIM_IT_Break)) {
 		PIOS_TIM_generic_irq_handler(TIM1);
-	} else if (TIM_GetITStatus(TIM10, TIM_IT_CC1 | TIM_IT_CC2 | TIM_IT_CC3 | TIM_IT_CC4)) {
-		PIOS_TIM_generic_irq_handler (TIM10);
+	} else if (TIM_GetITStatus(TIM9, TIM_IT_Update | TIM_IT_CC1 | TIM_IT_CC2 | TIM_IT_CC3 | TIM_IT_CC4 | TIM_IT_COM | TIM_IT_Trigger | TIM_IT_Break)) {
+		PIOS_TIM_generic_irq_handler (TIM9);
 	}
 }
 
-void TIM1_TRG_COM_TIM11_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_11_CC_irq_handler")));
-static void PIOS_TIM_11_CC_irq_handler (void)
+void TIM1_UP_TIM10_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_1_UP_TIM_10_irq_handler")));
+static void PIOS_TIM_1_UP_TIM_10_irq_handler (void)
 {
-	// TODO: Check for TIM1_TRG
-	PIOS_TIM_generic_irq_handler (TIM11);
+	if (TIM_GetITStatus(TIM1, TIM_IT_Update)) {
+		PIOS_TIM_generic_irq_handler(TIM1);
+	} else if (TIM_GetITStatus(TIM10, TIM_IT_Update | TIM_IT_CC1 | TIM_IT_CC2 | TIM_IT_CC3 | TIM_IT_CC4 | TIM_IT_COM | TIM_IT_Trigger | TIM_IT_Break)) {
+		PIOS_TIM_generic_irq_handler (TIM10);
+	}
+}
+void TIM1_TRG_COM_TIM11_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_1_TRG_COM_TIM_11_irq_handler")));
+static void PIOS_TIM_1_TRG_COM_TIM_11_irq_handler (void)
+{
+	if (TIM_GetITStatus(TIM1, TIM_IT_Trigger)) {
+		PIOS_TIM_generic_irq_handler(TIM1);
+	} else if (TIM_GetITStatus(TIM11, TIM_IT_Update | TIM_IT_CC1 | TIM_IT_CC2 | TIM_IT_CC3 | TIM_IT_CC4 | TIM_IT_COM | TIM_IT_Trigger | TIM_IT_Break)) {
+		PIOS_TIM_generic_irq_handler (TIM11);
+	}
 }
 
 void TIM2_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_2_irq_handler")));
@@ -462,9 +469,10 @@ static void PIOS_TIM_5_irq_handler (void)
 	PIOS_TIM_generic_irq_handler (TIM5);
 }
 
-void TIM6_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_6_irq_handler")));
-static void PIOS_TIM_6_irq_handler (void)
+void TIM6_DAC_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_6_DAC_irq_handler")));
+static void PIOS_TIM_6_DAC_irq_handler (void)
 {
+	// TODO: Check for DAC
 	PIOS_TIM_generic_irq_handler (TIM6);
 }
 
@@ -474,16 +482,41 @@ static void PIOS_TIM_7_irq_handler (void)
 	PIOS_TIM_generic_irq_handler (TIM7);
 }
 
-void TIM8_UP_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_8_UP_irq_handler")));
-static void PIOS_TIM_8_UP_irq_handler (void)
-{
-	PIOS_TIM_generic_irq_handler (TIM8);
-}
-
 void TIM8_CC_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_8_CC_irq_handler")));
 static void PIOS_TIM_8_CC_irq_handler (void)
 {
 	PIOS_TIM_generic_irq_handler (TIM8);
+}
+
+// The rest of TIM8 interrupts are overlapped
+void TIM8_BRK_TIM12_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_8_BRK_TIM_12_irq_handler")));
+static void PIOS_TIM_8_BRK_TIM_12_irq_handler (void)
+{
+	if (TIM_GetITStatus(TIM8, TIM_IT_Break)) {
+		PIOS_TIM_generic_irq_handler(TIM8);
+	} else if (TIM_GetITStatus(TIM12, TIM_IT_Update | TIM_IT_CC1 | TIM_IT_CC2 | TIM_IT_CC3 | TIM_IT_CC4 | TIM_IT_COM | TIM_IT_Trigger | TIM_IT_Break)) {
+		PIOS_TIM_generic_irq_handler (TIM12);
+	}
+}
+
+void TIM8_UP_TIM13_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_8_UP_TIM_13_irq_handler")));
+static void PIOS_TIM_8_UP_TIM_13_irq_handler (void)
+{
+	if (TIM_GetITStatus(TIM8, TIM_IT_Update)) {
+		PIOS_TIM_generic_irq_handler(TIM8);
+	} else if (TIM_GetITStatus(TIM13, TIM_IT_Update | TIM_IT_CC1 | TIM_IT_CC2 | TIM_IT_CC3 | TIM_IT_CC4 | TIM_IT_COM | TIM_IT_Trigger | TIM_IT_Break)) {
+		PIOS_TIM_generic_irq_handler (TIM13);
+	}
+}
+
+void TIM8_TRG_COM_TIM14_IRQHandler(void) __attribute__ ((alias ("PIOS_TIM_8_TRG_COM_TIM_14_irq_handler")));
+static void PIOS_TIM_8_TRG_COM_TIM_14_irq_handler (void)
+{
+	if (TIM_GetITStatus(TIM8, TIM_IT_Trigger)) {
+		PIOS_TIM_generic_irq_handler(TIM8);
+	} else if (TIM_GetITStatus(TIM14, TIM_IT_Update | TIM_IT_CC1 | TIM_IT_CC2 | TIM_IT_CC3 | TIM_IT_CC4 | TIM_IT_COM | TIM_IT_Trigger | TIM_IT_Break)) {
+		PIOS_TIM_generic_irq_handler (TIM14);
+	}
 }
 
 /**
