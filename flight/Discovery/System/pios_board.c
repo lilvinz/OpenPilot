@@ -63,11 +63,15 @@ uint32_t pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_NONE];
 #define PIOS_COM_BRIDGE_RX_BUF_LEN 65
 #define PIOS_COM_BRIDGE_TX_BUF_LEN 12
 
-uint32_t pios_com_telem_rf_id;
-uint32_t pios_com_telem_usb_id;
+#define PIOS_COM_AUX_RX_BUF_LEN 512
+#define PIOS_COM_AUX_TX_BUF_LEN 512
+
+uint32_t pios_com_aux_id = 0;
+uint32_t pios_com_gps_id = 0;
+uint32_t pios_com_telem_usb_id = 0;
+uint32_t pios_com_telem_rf_id = 0;
+uint32_t pios_com_bridge_id = 0;
 uint32_t pios_com_vcp_id;
-uint32_t pios_com_gps_id;
-uint32_t pios_com_bridge_id;
 
 /* 
  * Setup a com port based on the passed cfg, driver and buffer sizes. tx size of -1 make the port rx only
@@ -262,7 +266,6 @@ void PIOS_Board_Init(void) {
 	/* Initialize board specific USB data */
 	PIOS_USB_BOARD_DATA_Init();
 
-
 	/* Flags to determine if various USB interfaces are advertised */
 	bool usb_hid_present = false;
 	bool usb_cdc_present = false;
@@ -329,7 +332,9 @@ void PIOS_Board_Init(void) {
 	case HWSETTINGS_CC_MAINPORT_DISABLED:
 		break;
 	case HWSETTINGS_CC_MAINPORT_TELEMETRY:
-		//not possible because main port (usart1 is rx only)
+#if defined(PIOS_INCLUDE_TELEMETRY_RF)
+		PIOS_Board_configure_com(&pios_usart3_cfg, PIOS_COM_TELEM_RF_RX_BUF_LEN, PIOS_COM_TELEM_RF_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_telem_rf_id);
+#endif /* PIOS_INCLUDE_TELEMETRY_RF */
 		break;
 	case HWSETTINGS_CC_MAINPORT_SBUS:
 		//not possible because no inverter
@@ -358,15 +363,16 @@ void PIOS_Board_Init(void) {
 				break;
 			}
 			
-			PIOS_Board_configure_dsm(&pios_usart1_dsm_cfg, &pios_usart1_dsm_aux_cfg, &pios_usart_com_driver,
+			PIOS_Board_configure_dsm(&pios_usart3_dsm_cfg, &pios_usart3_dsm_aux_cfg, &pios_usart_com_driver,
 				&proto, MANUALCONTROLSETTINGS_CHANNELGROUPS_DSMMAINPORT, &hwsettings_DSMxBind);
 		}
 #endif	/* PIOS_INCLUDE_DSM */
 		break;
 	case HWSETTINGS_CC_MAINPORT_COMAUX:
+		PIOS_Board_configure_com(&pios_usart3_cfg, PIOS_COM_AUX_RX_BUF_LEN, PIOS_COM_AUX_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_aux_id);
 		break;
 	case HWSETTINGS_CC_MAINPORT_COMBRIDGE:
-		//not possible because main port (usart1 is rx only)
+		PIOS_Board_configure_com(&pios_usart3_cfg, PIOS_COM_BRIDGE_RX_BUF_LEN, PIOS_COM_BRIDGE_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_bridge_id);
 		break;
 	}
 
@@ -381,9 +387,6 @@ void PIOS_Board_Init(void) {
 #if defined(PIOS_INCLUDE_TELEMETRY_RF)
 		PIOS_Board_configure_com(&pios_usart2_cfg, PIOS_COM_TELEM_RF_RX_BUF_LEN, PIOS_COM_TELEM_RF_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_telem_rf_id);
 #endif /* PIOS_INCLUDE_TELEMETRY_RF */
-		break;
-	case HWSETTINGS_CC_FLEXIPORT_COMBRIDGE:
-		PIOS_Board_configure_com(&pios_usart2_cfg, PIOS_COM_BRIDGE_RX_BUF_LEN, PIOS_COM_BRIDGE_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_bridge_id);
 		break;
 	case HWSETTINGS_CC_FLEXIPORT_GPS:
 #if defined(PIOS_INCLUDE_GPS)
@@ -417,14 +420,15 @@ void PIOS_Board_Init(void) {
 #endif	/* PIOS_INCLUDE_DSM */
 		break;
 	case HWSETTINGS_CC_FLEXIPORT_COMAUX:
+		PIOS_Board_configure_com(&pios_usart2_cfg, PIOS_COM_AUX_RX_BUF_LEN, PIOS_COM_AUX_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_aux_id);
+		break;
+	case HWSETTINGS_CC_FLEXIPORT_COMBRIDGE:
+		PIOS_Board_configure_com(&pios_usart2_cfg, PIOS_COM_BRIDGE_RX_BUF_LEN, PIOS_COM_BRIDGE_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_bridge_id);
 		break;
 	case HWSETTINGS_CC_FLEXIPORT_I2C:
 		// not supported for this hardware
 		break;
 	}
-
-
-
 
 
 	/* Configure the rcvr port */
