@@ -144,6 +144,10 @@ int32_t PIOS_TIM_InitClock(const struct pios_tim_clock_cfg * cfg)
 	/* Enable Interrupts */
 	NVIC_Init(&cfg->irq.init);
 
+	/* check for optional second vector (dirty hack) */
+	if (cfg->irq2.init.NVIC_IRQChannel != 0)
+		NVIC_Init(&cfg->irq2.init);
+
 	return 0;
 }
 
