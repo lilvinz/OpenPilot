@@ -375,10 +375,10 @@ bool PIOS_L3GD20_IRQHandler(void)
 	memcpy((uint8_t *) &(data.gyro_x), &rec[1], 6);
 	data.temperature = PIOS_L3GD20_GetReg(PIOS_L3GD20_OUT_TEMP);
 	
-    portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
-    xQueueSendToBackFromISR(dev->queue, (void *) &data, &xHigherPriorityTaskWoken);
+	portBASE_TYPE xHigherPriorityTaskWoken;
+	xQueueSendToBackFromISR(dev->queue, (void *) &data, &xHigherPriorityTaskWoken);
 
-    return xHigherPriorityTaskWoken == pdTRUE;
+	return xHigherPriorityTaskWoken == pdTRUE;
 }
 
 #endif /* L3GD20 */
