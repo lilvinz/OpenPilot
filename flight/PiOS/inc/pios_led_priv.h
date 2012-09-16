@@ -37,7 +37,7 @@
 struct pios_led {
 	struct stm32_gpio pin;
 	uint32_t remap;
-	bool invert;
+	bool active_high;
 };
 
 struct pios_led_cfg {
