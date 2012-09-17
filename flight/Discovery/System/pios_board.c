@@ -230,7 +230,7 @@ void PIOS_Board_Init(void) {
 #ifndef ERASE_FLASH
 	/* Initialize watchdog as early as possible to catch faults during init */
 #ifndef DEBUG
-	//PIOS_WDG_Init();
+	PIOS_WDG_Init();
 #endif
 #endif
 
