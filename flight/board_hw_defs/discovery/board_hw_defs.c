@@ -464,6 +464,61 @@ static const struct pios_dsm_cfg pios_usart3_dsm_aux_cfg = {
 
 #endif	/* PIOS_INCLUDE_DSM */
 
+#if defined(PIOS_INCLUDE_SBUS)
+/*
+ * S.Bus USART
+ */
+#include <pios_sbus_priv.h>
+
+static const struct pios_usart_cfg pios_usart3_sbus_cfg = {
+	.regs = USART3,
+	.remap = GPIO_AF_USART3,
+	.init = {
+		.USART_BaudRate            = 100000,
+		.USART_WordLength          = USART_WordLength_8b,
+		.USART_Parity              = USART_Parity_Even,
+		.USART_StopBits            = USART_StopBits_2,
+		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
+		.USART_Mode                = USART_Mode_Rx,
+	},
+	.irq = {
+		.init = {
+			.NVIC_IRQChannel                   = USART3_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
+			.NVIC_IRQChannelSubPriority        = 0,
+			.NVIC_IRQChannelCmd                = ENABLE,
+		  },
+	},
+	.rx = {
+		.gpio = GPIOB,
+		.init = {
+			.GPIO_Pin   = GPIO_Pin_11,
+			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Mode  = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd  = GPIO_PuPd_UP
+		},
+		.pin_source = GPIO_PinSource11,
+	},
+};
+
+static const struct pios_sbus_cfg pios_usart3_sbus_aux_cfg = {
+	/* Inverter configuration */
+	.inv = {
+		.gpio = GPIOD,
+		.init = {
+			.GPIO_Pin = GPIO_Pin_9,
+			.GPIO_Speed = GPIO_Speed_2MHz,
+			.GPIO_Mode  = GPIO_Mode_OUT,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd  = GPIO_PuPd_NOPULL
+		},
+	},
+	.gpio_inv_enable = Bit_SET,
+};
+
+#endif	/* PIOS_INCLUDE_SBUS */
+
 static const struct pios_usart_cfg pios_usart1_cfg = {
 	.regs = USART1,
 	.remap = GPIO_AF_USART1,

@@ -337,7 +337,27 @@ void PIOS_Board_Init(void) {
 #endif /* PIOS_INCLUDE_TELEMETRY_RF */
 		break;
 	case HWSETTINGS_CC_MAINPORT_SBUS:
-		//not possible because no inverter
+		//hardware signal inverter required
+#if defined(PIOS_INCLUDE_SBUS)
+		{
+			uint32_t pios_usart_sbus_id;
+			if (PIOS_USART_Init(&pios_usart_sbus_id, &pios_usart3_sbus_cfg)) {
+				PIOS_Assert(0);
+			}
+
+			uint32_t pios_sbus_id;
+			if (PIOS_SBus_Init(&pios_sbus_id, &pios_usart3_sbus_aux_cfg, &pios_usart_com_driver, pios_usart_sbus_id)) {
+				PIOS_Assert(0);
+			}
+
+			uint32_t pios_sbus_rcvr_id;
+			if (PIOS_RCVR_Init(&pios_sbus_rcvr_id, &pios_sbus_rcvr_driver, pios_sbus_id)) {
+				PIOS_Assert(0);
+			}
+			pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_SBUS] = pios_sbus_rcvr_id;
+
+		}
+#endif	/* PIOS_INCLUDE_SBUS */
 		break;
 	case HWSETTINGS_CC_MAINPORT_GPS:
 		PIOS_Board_configure_com(&pios_usart3_cfg, PIOS_COM_GPS_RX_BUF_LEN, -1, &pios_usart_com_driver, &pios_com_gps_id);
