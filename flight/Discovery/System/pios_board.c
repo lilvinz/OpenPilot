@@ -470,6 +470,17 @@ void PIOS_Board_Init(void) {
 	}
 
 
+#if defined(PIOS_INCLUDE_GCSRCVR)
+	GCSReceiverInitialize();
+	uint32_t pios_gcsrcvr_id;
+	PIOS_GCSRCVR_Init(&pios_gcsrcvr_id);
+	uint32_t pios_gcsrcvr_rcvr_id;
+	if (PIOS_RCVR_Init(&pios_gcsrcvr_rcvr_id, &pios_gcsrcvr_rcvr_driver, pios_gcsrcvr_id)) {
+		PIOS_Assert(0);
+	}
+	pios_rcvr_group_map[MANUALCONTROLSETTINGS_CHANNELGROUPS_GCS] = pios_gcsrcvr_rcvr_id;
+#endif	/* PIOS_INCLUDE_GCSRCVR */
+
 #ifndef PIOS_DEBUG_ENABLE_DEBUG_PINS
 	switch (hwsettings_rcvrport) {
 		case HWSETTINGS_RV_RCVRPORT_DISABLED:
@@ -488,7 +499,6 @@ void PIOS_Board_Init(void) {
 #else
 	PIOS_DEBUG_Init(&pios_tim_servo_all_channels, NELEMENTS(pios_tim_servo_all_channels));
 #endif
-
 
 #if defined(PIOS_INCLUDE_MPU6050)
 	/* Set up the I2C interface to the accelerometer*/

@@ -53,7 +53,7 @@
 //#define PIOS_INCLUDE_SBUS  port for F4XX is missing
 #define PIOS_INCLUDE_PPM
 #define PIOS_INCLUDE_PWM
-//#define PIOS_INCLUDE_GCSRCVR
+#define PIOS_INCLUDE_GCSRCVR
 
 /* Supported USART-based PIOS modules */
 #define PIOS_INCLUDE_TELEMETRY_RF
