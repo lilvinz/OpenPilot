@@ -400,26 +400,26 @@ uint32_t mpu6000_interval_us;
 uint32_t mpu6000_time_us;
 uint32_t mpu6000_transfer_size;
 
-void PIOS_MPU6000_IRQHandler(void)
+bool PIOS_MPU6000_IRQHandler(void)
 {
 	static uint32_t timeval;
 	mpu6000_interval_us = PIOS_DELAY_DiffuS(timeval);
 	timeval = PIOS_DELAY_GetRaw();
 
 	if(!mpu6000_configured)
-		return;
+		return false;
 
 	mpu6000_count = PIOS_MPU6000_FifoDepth();
 	if(mpu6000_count < sizeof(struct pios_mpu6000_data))
-		return;
+		return false;
 		
 	if(PIOS_MPU6000_ClaimBus() != 0)
-		return;		
+		return false;
 		
 	if(PIOS_SPI_TransferBlock(dev->spi_id, &mpu6000_send_buf[0], &mpu6000_rec_buf[0], sizeof(mpu6000_send_buf), NULL) < 0) {
 		PIOS_MPU6000_ReleaseBus();
 		mpu6000_fails++;
-		return;
+		return false;
 	}
 
 	PIOS_MPU6000_ReleaseBus();
@@ -430,12 +430,12 @@ void PIOS_MPU6000_IRQHandler(void)
 	if (mpu6000_count >= (sizeof(data) * 2)) {
 		mpu6000_fifo_backup++;
 		if(PIOS_MPU6000_ClaimBus() != 0)
-			return;		
+			return false;		
 		
 		if(PIOS_SPI_TransferBlock(dev->spi_id, &mpu6000_send_buf[0], &mpu6000_rec_buf[0], sizeof(mpu6000_send_buf), NULL) < 0) {
 			PIOS_MPU6000_ReleaseBus();
 			mpu6000_fails++;
-			return;
+			return false;
 		}
 		
 		PIOS_MPU6000_ReleaseBus();
