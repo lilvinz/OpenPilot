@@ -470,7 +470,7 @@ bool PIOS_BMA180_IRQHandler(void)
 	data.temperature = pios_bma180_dmabuf[7];
 	
 	fifoBuf_putData(&dev->fifo, (uint8_t *) &data, sizeof(data));
-
+	
 	return false;
 }
 

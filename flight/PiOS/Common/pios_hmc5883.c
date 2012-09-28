@@ -394,6 +394,7 @@ int32_t PIOS_HMC5883_Test(void)
 bool PIOS_HMC5883_IRQHandler(void)
 {
 	pios_hmc5883_data_ready = true;
+	
 	return false;
 }
 

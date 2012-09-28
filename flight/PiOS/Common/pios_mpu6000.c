@@ -433,7 +433,7 @@ bool PIOS_MPU6000_IRQHandler(void)
 	if (mpu6000_count >= (sizeof(data) * 2)) {
 		mpu6000_fifo_backup++;
 		if(PIOS_MPU6000_ClaimBus() != 0)
-			return false;
+			return false;		
 		
 		if(PIOS_SPI_TransferBlock(dev->spi_id, &mpu6000_send_buf[0], &mpu6000_rec_buf[0], sizeof(mpu6000_send_buf), NULL) < 0) {
 			PIOS_MPU6000_ReleaseBus();
@@ -458,15 +458,15 @@ bool PIOS_MPU6000_IRQHandler(void)
 	data.gyro_y = mpu6000_rec_buf[5] << 8 | mpu6000_rec_buf[6];
 	data.gyro_z = mpu6000_rec_buf[7] << 8 | mpu6000_rec_buf[8];
 #endif
-
+	
 	portBASE_TYPE xHigherPriorityTaskWoken;
 	xQueueSendToBackFromISR(dev->queue, (void *) &data, &xHigherPriorityTaskWoken);
 	
 	mpu6000_irq++;
 	
 	mpu6000_time_us = PIOS_DELAY_DiffuS(timeval);
-
-	return xHigherPriorityTaskWoken == pdTRUE;
+	
+	return xHigherPriorityTaskWoken == pdTRUE;	
 }
 
 #endif

@@ -377,7 +377,7 @@ bool PIOS_L3GD20_IRQHandler(void)
 	
 	portBASE_TYPE xHigherPriorityTaskWoken;
 	xQueueSendToBackFromISR(dev->queue, (void *) &data, &xHigherPriorityTaskWoken);
-
+	
 	return xHigherPriorityTaskWoken == pdTRUE;
 }
 
