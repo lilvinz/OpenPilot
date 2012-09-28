@@ -652,7 +652,7 @@ all_$(1)_clean: $$(addsuffix _clean, $$(filter bu_$(1), $$(BU_TARGETS)))
 all_$(1)_clean: $$(addsuffix _clean, $$(filter ef_$(1), $$(EF_TARGETS)))
 endef
 
-ALL_BOARDS := discovery
+ALL_BOARDS := discovery discoveryf3
 
 # SimPosix only builds on Linux so drop it from the list for
 # all other platforms.
@@ -666,6 +666,7 @@ pipxtreme_friendly     := PipXtreme
 revolution_friendly    := Revolution
 simposix_friendly      := SimPosix
 discovery_friendly     := Discovery
+discoveryf3_friendly   := DiscoveryF3
 
 # SimPosix only builds on Linux so drop it from the list for
 # all other platforms.
@@ -680,6 +681,7 @@ revolution_short       := 'revo'
 simposix_short         := 'posx'
 osd_short              := 'osd '
 discovery_short        := 'disc'
+discoveryf3_short      := 'dif3'
 
 # Start out assuming that we'll build fw, bl and bu for all boards
 FW_BOARDS  := $(ALL_BOARDS)
@@ -696,6 +698,8 @@ BU_BOARDS  := $(filter-out ins, $(BU_BOARDS))
 #        yet so we need to filter them out to prevent errors.
 BU_BOARDS  := $(filter-out discovery, $(BU_BOARDS))
 EF_BOARDS  := $(filter-out discovery, $(EF_BOARDS))
+BU_BOARDS  := $(filter-out discoveryf3, $(BU_BOARDS))
+EF_BOARDS  := $(filter-out discoveryf3, $(EF_BOARDS))
 
 # SimPosix doesn't have a BL, BU or EF target so we need to
 # filter them out to prevent errors on the all_flight target.

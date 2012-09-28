@@ -58,7 +58,7 @@ MODULES += ManualControl
 MODULES += Stabilization
 #MODULES += Altitude
 MODULES += Actuator
-MODULES += GPS
+#MODULES += GPS
 MODULES += FirmwareIAP 
 #MODULES += AltitudeHold
 MODULES += CameraStab
@@ -79,13 +79,13 @@ PIOSINC = $(PIOS)/inc
 OPMODULEDIR = ../Modules
 FLIGHTLIB = ../Libraries
 FLIGHTLIBINC = ../Libraries/inc
-PIOSSTM32F4XX = $(PIOS)/STM32F4xx
+PIOSSTM32F30X = $(PIOS)/STM32F30x
 PIOSCOMMON = $(PIOS)/Common
 PIOSBOARDS = $(PIOS)/Boards
 PIOSCOMMONLIB = $(PIOSCOMMON)/Libraries
-APPLIBDIR = $(PIOSSTM32F4XX)/Libraries
+APPLIBDIR = $(PIOSSTM32F30X)/Libraries
 STMLIBDIR = $(APPLIBDIR)
-STMSPDDIR = $(STMLIBDIR)/STM32F4xx_StdPeriph_Driver
+STMSPDDIR = $(STMLIBDIR)/STM32F30x_StdPeriph_Driver
 STMSPDSRCDIR = $(STMSPDDIR)/src
 STMSPDINCDIR = $(STMSPDDIR)/inc
 OPUAVOBJ = ../UAVObjects
@@ -149,8 +149,8 @@ SRC += $(FLIGHTLIB)/WorldMagModel.c
 SRC += $(FLIGHTLIB)/insgps13state.c
 SRC += $(FLIGHTLIB)/taskmonitor.c
 
-## PIOS Hardware (STM32F4xx)
-include $(PIOS)/STM32F4xx/library.mk
+## PIOS Hardware (STM32F3xx)
+include $(PIOS)/STM32F30x/library.mk
 
 ## PIOS Hardware (Common)
 SRC += $(PIOSCOMMON)/pios_mpu6000.c
@@ -211,7 +211,7 @@ EXTRAINCDIRS  += $(OPUAVOBJ)
 EXTRAINCDIRS  += $(OPUAVOBJINC)
 EXTRAINCDIRS  += $(UAVOBJSYNTHDIR)
 EXTRAINCDIRS  += $(FLIGHTLIBINC)
-EXTRAINCDIRS  += $(PIOSSTM32F4XX)
+EXTRAINCDIRS  += $(PIOSSTM32F30X)
 EXTRAINCDIRS  += $(PIOSCOMMON)
 EXTRAINCDIRS  += $(PIOSBOARDS)
 EXTRAINCDIRS  += $(STMSPDINCDIR)
@@ -251,7 +251,7 @@ EXTRA_LIBDIRS =
 EXTRA_LIBS =
 
 # Path to Linker-Scripts
-LINKERSCRIPTPATH = $(PIOSSTM32F4XX)
+LINKERSCRIPTPATH = $(PIOSSTM32F30X)
 
 # Optimization level, can be [0, 1, 2, 3, s].
 # 0 = turn off optimization. s = optimize for size.
@@ -274,8 +274,8 @@ CFLAGS += -DDIAG_TASKS
 
 # This is not the best place for these.  Really should abstract out
 # to the board file or something
-CFLAGS += -DSTM32F4XX
-CFLAGS += -DMEM_SIZE=1048576
+CFLAGS += -DSTM32F30X
+CFLAGS += -DMEM_SIZE=262144
 
 ifeq ($(ERASE_FLASH), YES)
 CDEFS += -DERASE_FLASH

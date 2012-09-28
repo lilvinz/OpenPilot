@@ -53,13 +53,13 @@ PIOS = ../../PiOS
 PIOSINC = $(PIOS)/inc
 FLIGHTLIB = ../../Libraries
 FLIGHTLIBINC = ../../Libraries/inc
-PIOSSTM32F4XX = $(PIOS)/STM32F4xx
+PIOSSTM32F4XX = $(PIOS)/STM32F30x
 PIOSCOMMON = $(PIOS)/Common
 PIOSBOARDS = $(PIOS)/Boards
 PIOSCOMMONLIB = $(PIOSCOMMON)/Libraries
 APPLIBDIR = $(PIOSSTM32F4XX)/Libraries
 STMLIBDIR = $(APPLIBDIR)
-STMSPDDIR = $(STMLIBDIR)/STM32F4xx_StdPeriph_Driver
+STMSPDDIR = $(STMLIBDIR)/STM32F30x_StdPeriph_Driver
 STMSPDSRCDIR = $(STMSPDDIR)/src
 STMSPDINCDIR = $(STMSPDDIR)/inc
 HWDEFSINC = ../../board_hw_defs/$(BOARD_NAME)
@@ -73,8 +73,8 @@ SRC += pios_board.c
 SRC += pios_usb_board_data.c
 SRC += op_dfu.c
 
-## PIOS Hardware (STM32F4xx)
-include $(PIOS)/STM32F4xx/library.mk
+## PIOS Hardware (STM32F30x)
+include $(PIOS)/STM32F30x/library.mk
 
 # PIOS Hardware (Common)
 SRC += $(PIOSCOMMON)/pios_board_info.c
@@ -148,7 +148,7 @@ DEBUGF = dwarf-2
 
 # Place project-specific -D (define) and/or 
 # -U options for C here.
-CDEFS = -DSTM32F4XX
+CDEFS = -DSTM32F30X
 CDEFS += -DSYSCLK_FREQ=$(SYSCLK_FREQ)
 CDEFS += -DHSE_VALUE=$(OSCILLATOR_FREQ)
 CDEFS += -DUSE_STDPERIPH_DRIVER
@@ -194,8 +194,8 @@ endif
 
 # This is not the best place for these.  Really should abstract out
 # to the board file or something
-CFLAGS += -DSTM32F4XX
-CFLAGS += -DMEM_SIZE=1048576
+CFLAGS += -DSTM32F30X
+CFLAGS += -DMEM_SIZE=262144
 
 CFLAGS += -g$(DEBUGF)
 CFLAGS += -O$(OPT)
