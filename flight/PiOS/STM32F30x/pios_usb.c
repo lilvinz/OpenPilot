@@ -125,6 +125,22 @@ int32_t PIOS_USB_Init(uint32_t * usb_id, const struct pios_usb_cfg * cfg)
 	/* Enable the USB Interrupts */
 	NVIC_Init(&usb_dev->cfg->irq.init);
 
+	/* Configure USB D-/D+ (DM/DP) pins */
+	GPIO_InitTypeDef GPIO_InitStructure;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11 | GPIO_Pin_12;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+	GPIO_PinAFConfig(GPIOA, GPIO_PinSource11, GPIO_AF_14);
+	GPIO_PinAFConfig(GPIOA, GPIO_PinSource12, GPIO_AF_14);
+
+	/* Configure VBUS sense pin */
+	if (usb_dev->cfg->vsense.gpio)
+		GPIO_Init(usb_dev->cfg->vsense.gpio, &usb_dev->cfg->vsense.init);
+
 	/* Select USBCLK source */
 	RCC_USBCLKConfig(RCC_USBCLKSource_PLLCLK_1Div5);
 	/* Enable the USB clock */
@@ -198,6 +214,10 @@ int32_t PIOS_USB_Reenumerate()
 	/* Clear pending interrupts */
 	_SetISTR(0);
 
+	/* set back to alternate function */
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+
 	/* Configure USB clock */
 	/* USBCLK = PLLCLK / 1.5 */
 	RCC_USBCLKConfig(RCC_USBCLKSource_PLLCLK_1Div5);
@@ -213,6 +233,10 @@ bool PIOS_USB_CableConnected(uint8_t id)
 
 	if (PIOS_USB_validate(usb_dev) != 0)
 		return false;
+
+	//if hardware does not support vsense, return true
+	if (usb_dev->cfg->vsense.gpio == 0)
+		return true;
 
 	return usb_dev->cfg->vsense.gpio->IDR & usb_dev->cfg->vsense.init.GPIO_Pin;
 }
