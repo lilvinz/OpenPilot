@@ -34,9 +34,61 @@
 
 #include <pios_led_priv.h>
 static const struct pios_led pios_leds[] = {
-	[PIOS_LED_GREEN] = {
+	[PIOS_LED_BLUE_NW] = {
 		.pin = {
-			.gpio = GPIOD,
+			.gpio = GPIOE,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_8,
+				.GPIO_Speed = GPIO_Speed_50MHz,
+				.GPIO_Mode  = GPIO_Mode_OUT,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd = GPIO_PuPd_DOWN
+			},
+		},
+		.active_high = true,
+	},
+	[PIOS_LED_RED_N] = {
+		.pin = {
+			.gpio = GPIOE,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_9,
+				.GPIO_Speed = GPIO_Speed_50MHz,
+				.GPIO_Mode  = GPIO_Mode_OUT,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd = GPIO_PuPd_DOWN
+			},
+		},
+		.active_high = true,
+	},
+	[PIOS_LED_ORANGE_NE] = {
+		.pin = {
+			.gpio = GPIOE,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_10,
+				.GPIO_Speed = GPIO_Speed_50MHz,
+				.GPIO_Mode  = GPIO_Mode_OUT,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd = GPIO_PuPd_DOWN
+			},
+		},
+		.active_high = true,
+	},
+	[PIOS_LED_GREEN_E] = {
+		.pin = {
+			.gpio = GPIOE,
+			.init = {
+				.GPIO_Pin   = GPIO_Pin_11,
+				.GPIO_Speed = GPIO_Speed_50MHz,
+				.GPIO_Mode  = GPIO_Mode_OUT,
+				.GPIO_OType = GPIO_OType_PP,
+				.GPIO_PuPd = GPIO_PuPd_DOWN
+			},
+		},
+		.active_high = true,
+	},
+	[PIOS_LED_BLUE_SE] = {
+		.pin = {
+			.gpio = GPIOE,
 			.init = {
 				.GPIO_Pin   = GPIO_Pin_12,
 				.GPIO_Speed = GPIO_Speed_50MHz,
@@ -45,12 +97,11 @@ static const struct pios_led pios_leds[] = {
 				.GPIO_PuPd = GPIO_PuPd_DOWN
 			},
 		},
-		.remap = 0,
 		.active_high = true,
 	},
-	[PIOS_LED_ORANGE] = {
+	[PIOS_LED_RED_S] = {
 		.pin = {
-			.gpio = GPIOD,
+			.gpio = GPIOE,
 			.init = {
 				.GPIO_Pin   = GPIO_Pin_13,
 				.GPIO_Speed = GPIO_Speed_50MHz,
@@ -59,12 +110,11 @@ static const struct pios_led pios_leds[] = {
 				.GPIO_PuPd = GPIO_PuPd_DOWN
 			},
 		},
-		.remap = 0,
 		.active_high = true,
 	},
-	[PIOS_LED_RED] = {
+	[PIOS_LED_ORANGE_SW] = {
 		.pin = {
-			.gpio = GPIOD,
+			.gpio = GPIOE,
 			.init = {
 				.GPIO_Pin   = GPIO_Pin_14,
 				.GPIO_Speed = GPIO_Speed_50MHz,
@@ -73,12 +123,11 @@ static const struct pios_led pios_leds[] = {
 				.GPIO_PuPd = GPIO_PuPd_DOWN
 			},
 		},
-		.remap = 0,
 		.active_high = true,
 	},
-	[PIOS_LED_BLUE] = {
+	[PIOS_LED_GREEN_W] = {
 		.pin = {
-			.gpio = GPIOD,
+			.gpio = GPIOE,
 			.init = {
 				.GPIO_Pin   = GPIO_Pin_15,
 				.GPIO_Speed = GPIO_Speed_50MHz,
@@ -87,7 +136,6 @@ static const struct pios_led pios_leds[] = {
 				.GPIO_PuPd = GPIO_PuPd_DOWN
 			},
 		},
-		.remap = 0,
 		.active_high = true,
 	},
 };
