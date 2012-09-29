@@ -1048,15 +1048,6 @@ static const struct pios_usb_cfg pios_usb_main_cfg = {
 			.NVIC_IRQChannelCmd                = ENABLE,
 		},
 	},
-	.vsense = {
-		.gpio = GPIOC,
-		.init = {
-			.GPIO_Pin   = GPIO_Pin_14,
-			.GPIO_Speed = GPIO_Speed_10MHz,
-			.GPIO_Mode  = GPIO_Mode_IN,
-			.GPIO_OType = GPIO_OType_OD,
-		},
-	}
 };
 
 #include "pios_usb_board_data_priv.h"
