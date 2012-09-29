@@ -201,7 +201,7 @@ int32_t PIOS_SYS_SerialNumberGetBinary(uint8_t *array)
 	
 	/* Stored in the so called "electronic signature" */
 	for (i = 0; i < 12; ++i) {
-		uint8_t b = MEM8(0x1fff7a10 + i);
+		uint8_t b = MEM8(0x1ffff7ac + i);
 		
 		array[i] = b;
 	}
@@ -222,7 +222,7 @@ int32_t PIOS_SYS_SerialNumberGet(char *str)
 
 	/* Stored in the so called "electronic signature" */
 	for (i = 0; i < 24; ++i) {
-		uint8_t b = *(uint8_t *)(0x1fff7a10 + i/2);
+		uint8_t b = *(uint8_t *)(0x1ffff7ac + i/2);
 		if (!(i & 1))
 			b >>= 4;
 		b &= 0x0f;
