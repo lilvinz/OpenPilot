@@ -80,8 +80,14 @@ TIM8  |           |           |           |
 #define PIOS_LED_ORANGE		1
 #define PIOS_LED_RED		2
 #define PIOS_LED_BLUE		3
+
 #define PIOS_LED_HEARTBEAT	PIOS_LED_BLUE
 #define PIOS_LED_ALARM		PIOS_LED_RED
+#define PIOS_LED_USB		PIOS_LED_GREEN
+
+#define USB_LED_ON			PIOS_LED_On(PIOS_LED_USB)
+#define USB_LED_OFF			PIOS_LED_Off(PIOS_LED_USB)
+#define USB_LED_TOGGLE		PIOS_LED_Toggle(PIOS_LED_USB)
 
 
 //-------------------------
