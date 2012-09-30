@@ -158,14 +158,14 @@ int32_t PIOS_SPI_Init(uint32_t * spi_id, const struct pios_spi_cfg * cfg)
 	}
 
 	/* Configure DMA for SPI Rx */
-	DMA_DeInit(spi_dev->cfg->dma.rx.channel);
-	DMA_Cmd(spi_dev->cfg->dma.rx.channel, DISABLE);
-	DMA_Init(spi_dev->cfg->dma.rx.channel, (DMA_InitTypeDef*)&(spi_dev->cfg->dma.rx.init));
+//	DMA_DeInit(spi_dev->cfg->dma.rx.channel);
+//	DMA_Cmd(spi_dev->cfg->dma.rx.channel, DISABLE);
+//	DMA_Init(spi_dev->cfg->dma.rx.channel, (DMA_InitTypeDef*)&(spi_dev->cfg->dma.rx.init));
 
 	/* Configure DMA for SPI Tx */
-	DMA_DeInit(spi_dev->cfg->dma.tx.channel);
-	DMA_Cmd(spi_dev->cfg->dma.tx.channel, DISABLE);
-	DMA_Init(spi_dev->cfg->dma.tx.channel, (DMA_InitTypeDef*)&(spi_dev->cfg->dma.tx.init));
+//	DMA_DeInit(spi_dev->cfg->dma.tx.channel);
+//	DMA_Cmd(spi_dev->cfg->dma.tx.channel, DISABLE);
+//	DMA_Init(spi_dev->cfg->dma.tx.channel, (DMA_InitTypeDef*)&(spi_dev->cfg->dma.tx.init));
 
 	/* Initialize the SPI block */
 	SPI_I2S_DeInit(spi_dev->cfg->regs);
@@ -182,13 +182,13 @@ int32_t PIOS_SPI_Init(uint32_t * spi_id, const struct pios_spi_cfg * cfg)
 	SPI_Cmd(spi_dev->cfg->regs, ENABLE);
 
 	/* Enable SPI interrupts to DMA */
-	SPI_I2S_DMACmd(spi_dev->cfg->regs, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, ENABLE);
+//	SPI_I2S_DMACmd(spi_dev->cfg->regs, SPI_I2S_DMAReq_Tx | SPI_I2S_DMAReq_Rx, ENABLE);
 
 	/* Must store this before enabling interrupt */
 	*spi_id = (uint32_t)spi_dev;
 
 	/* Configure DMA interrupt */
-	NVIC_Init((NVIC_InitTypeDef*)&(spi_dev->cfg->dma.irq.init));
+//	NVIC_Init((NVIC_InitTypeDef*)&(spi_dev->cfg->dma.irq.init));
 
 	return(0);
 
@@ -265,19 +265,23 @@ int32_t PIOS_SPI_ClaimBus(uint32_t spi_id)
 /**
  * Claim the SPI bus semaphore from an ISR.  Has no timeout.
  * \param[in] spi SPI number (0 or 1)
+ * \param[in] pointer which receives if a task has been woken
  * \return 0 if no error
  * \return -1 if timeout before claiming semaphore
  */
-int32_t PIOS_SPI_ClaimBusISR(uint32_t spi_id)
+int32_t PIOS_SPI_ClaimBusISR(uint32_t spi_id, bool *woken)
 {
 #if defined(PIOS_INCLUDE_FREERTOS)
+	portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
 	struct pios_spi_dev * spi_dev = (struct pios_spi_dev *)spi_id;
 	
 	bool valid = PIOS_SPI_validate(spi_dev);
 	PIOS_Assert(valid)
 	
-	if (xQueueGenericReceive(( xQueueHandle ) spi_dev->busy, NULL, 0x0000 , pdFALSE ) != pdTRUE)
+	if (xQueueReceiveFromISR(( xQueueHandle ) spi_dev->busy, NULL, &xHigherPriorityTaskWoken ) != pdTRUE)
 		return -1;
+
+	*woken = *woken || (xHigherPriorityTaskWoken == pdTRUE);
 #endif
 	return 0;
 }
@@ -297,6 +301,33 @@ int32_t PIOS_SPI_ReleaseBus(uint32_t spi_id)
 	PIOS_Assert(valid)
 
 	xSemaphoreGive(spi_dev->busy);
+#endif
+	return 0;
+}
+
+/**
+ * Release the SPI bus from an ISR.
+ * \param[in] spi SPI number (0 or 1)
+ * \param[in] pointer which receives if a task has been woken
+ * \return 0 if no error
+ */
+int32_t PIOS_SPI_ReleaseBusISR(uint32_t spi_id, bool *woken)
+{
+#if defined(PIOS_INCLUDE_FREERTOS)
+	portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
+	struct pios_spi_dev * spi_dev = (struct pios_spi_dev *)spi_id;
+
+	bool valid = PIOS_SPI_validate(spi_dev);
+	PIOS_Assert(valid)
+
+	xSemaphoreGiveFromISR(spi_dev->busy, &xHigherPriorityTaskWoken);
+
+	*woken = *woken || (xHigherPriorityTaskWoken == pdTRUE);
+#else
+	struct pios_spi_dev * spi_dev = (struct pios_spi_dev *)spi_id;
+	PIOS_IRQ_Disable();
+	spi_dev->busy = 0;
+	PIOS_IRQ_Enable();
 #endif
 	return 0;
 }
@@ -545,9 +576,9 @@ static int32_t SPI_PIO_TransferBlock(uint32_t spi_id, const uint8_t *send_buffer
 	PIOS_Assert(valid)
 
 	/* Exit if ongoing transfer */
-	if (DMA_GetCurrDataCounter(spi_dev->cfg->dma.rx.channel)) {
-		return -3;
-	}
+//	if (DMA_GetCurrDataCounter(spi_dev->cfg->dma.rx.channel)) {
+//		return -3;
+//	}
 
 	/* Make sure the RXNE flag is cleared by reading the DR register */
 	b = spi_dev->cfg->regs->DR;
