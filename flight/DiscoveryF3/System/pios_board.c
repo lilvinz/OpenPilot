@@ -174,6 +174,49 @@ static const struct pios_l3gd20_cfg pios_l3gd20_cfg = {
 };
 #endif /* PIOS_INCLUDE_L3GD20 */
 
+
+/**
+ * Configuration for the LSM303 chip
+ */
+#if defined(PIOS_INCLUDE_LSM303)
+#include "pios_lsm303.h"
+static const struct pios_exti_cfg pios_exti_lsm303_cfg __exti_config = {
+	.vector = PIOS_LSM303_IRQHandler,
+	.line = EXTI_Line4,
+	.pin = {
+		.gpio = GPIOE,
+		.init = {
+			.GPIO_Pin = GPIO_Pin_4,
+			.GPIO_Speed = GPIO_Speed_50MHz,
+			.GPIO_Mode = GPIO_Mode_IN,
+			.GPIO_OType = GPIO_OType_OD,
+			.GPIO_PuPd = GPIO_PuPd_NOPULL,
+		},
+	},
+	.irq = {
+		.init = {
+			.NVIC_IRQChannel = EXTI4_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
+			.NVIC_IRQChannelSubPriority = 0,
+			.NVIC_IRQChannelCmd = ENABLE,
+		},
+	},
+	.exti = {
+		.init = {
+			.EXTI_Line = EXTI_Line4, // matches above GPIO pin
+			.EXTI_Mode = EXTI_Mode_Interrupt,
+			.EXTI_Trigger = EXTI_Trigger_Rising,
+			.EXTI_LineCmd = ENABLE,
+		},
+	},
+};
+
+static const struct pios_lsm303_cfg pios_lsm303_cfg = {
+	.exti_cfg = &pios_exti_lsm303_cfg,
+	.devicetype = LSM303DLHC_DEVICE,
+};
+#endif /* PIOS_INCLUDE_LSM303 */
+
 /*
 static const struct flashfs_cfg flashfs_m25p_cfg = {
 	.table_magic = 0x85FB3D35,
@@ -534,6 +577,21 @@ void PIOS_Board_Init(void) {
 	PIOS_L3GD20_Init(pios_spi_gyro_id, 0, &pios_l3gd20_cfg);
 	PIOS_Assert(PIOS_L3GD20_Test() == 0);
 #endif
+
+#if defined(PIOS_INCLUDE_LSM303) && defined(PIOS_INCLUDE_I2C)
+	/* Set up the I2C interface to the accelerometer*/
+	if (PIOS_I2C_Init(&pios_i2c_accel_mag_id, &pios_i2c_accel_mag_cfg)) {
+		PIOS_DEBUG_Assert(0);
+	}
+
+	PIOS_LSM303_Init(pios_i2c_accel_mag_id, &pios_lsm303_cfg);
+	{
+		uint8_t init_test;
+		init_test = PIOS_LSM303_Test();
+		++init_test;
+	}
+#endif /* PIOS_INCLUDE_LSM303 */
+
 
 #if defined(PIOS_INCLUDE_GPIO)
 	PIOS_GPIO_Init();

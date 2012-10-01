@@ -310,12 +310,12 @@ void PIOS_SPI_flash_irq_handler(void)
 /*
  * I2C Adapters
  */
-void PIOS_I2C_accel_ev_irq_handler(void);
-void PIOS_I2C_accel_er_irq_handler(void);
-void I2C1_EV_IRQHandler() __attribute__ ((alias ("PIOS_I2C_accel_ev_irq_handler")));
-void I2C1_ER_IRQHandler() __attribute__ ((alias ("PIOS_I2C_accel_er_irq_handler")));
+void PIOS_I2C_accel_mag_ev_irq_handler(void);
+void PIOS_I2C_accel_mag_er_irq_handler(void);
+void I2C1_EV_IRQHandler() __attribute__ ((alias ("PIOS_I2C_accel_mag_ev_irq_handler")));
+void I2C1_ER_IRQHandler() __attribute__ ((alias ("PIOS_I2C_accel_mag_er_irq_handler")));
 
-static const struct pios_i2c_adapter_cfg pios_i2c_accel_cfg = {
+static const struct pios_i2c_adapter_cfg pios_i2c_accel_mag_cfg = {
   .regs = I2C1,
   .remap = GPIO_AF4,
   .init = {
@@ -370,17 +370,17 @@ static const struct pios_i2c_adapter_cfg pios_i2c_accel_cfg = {
   },
 };
 
-uint32_t pios_i2c_gyro_accel_id;
+uint32_t pios_i2c_accel_mag_id;
 void PIOS_I2C_accel_ev_irq_handler(void)
 {
   /* Call into the generic code to handle the IRQ for this specific device */
-  PIOS_I2C_EV_IRQ_Handler(pios_i2c_gyro_accel_id);
+  PIOS_I2C_EV_IRQ_Handler(pios_i2c_accel_mag_id);
 }
 
 void PIOS_I2C_accel_er_irq_handler(void)
 {
   /* Call into the generic code to handle the IRQ for this specific device */
-  PIOS_I2C_ER_IRQ_Handler(pios_i2c_accel_id);
+  PIOS_I2C_ER_IRQ_Handler(pios_i2c_accel_mag_id);
 }
 
 #endif /* PIOS_INCLUDE_I2C */

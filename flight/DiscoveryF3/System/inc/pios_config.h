@@ -76,6 +76,7 @@
 
 #define PIOS_INCLUDE_FLASH
 #define PIOS_INCLUDE_L3GD20
+#define PIOS_INCLUDE_LSM303
 
 /* A really shitty setting saving implementation */
 #define PIOS_INCLUDE_FLASH_SECTOR_SETTINGS
