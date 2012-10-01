@@ -142,6 +142,9 @@
 #if defined(PIOS_INCLUDE_BMA180)
 #include <pios_bma180.h>
 #endif
+#if defined(PIOS_INCLUDE_LSM303)
+#include <pios_lsm303.h>
+#endif
 
 #if defined(PIOS_INCLUDE_FLASH)
 #include <pios_flash_jedec.h>
