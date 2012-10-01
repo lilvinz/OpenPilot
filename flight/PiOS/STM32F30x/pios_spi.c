@@ -178,6 +178,9 @@ int32_t PIOS_SPI_Init(uint32_t * spi_id, const struct pios_spi_cfg * cfg)
 		SPI_CalculateCRC(spi_dev->cfg->regs, DISABLE);
 	}
 
+	/* Configure the RX FIFO Threshold */
+	SPI_RxFIFOThresholdConfig(spi_dev->cfg->regs, SPI_RxFIFOThreshold_QF);
+
 	/* Enable SPI */
 	SPI_Cmd(spi_dev->cfg->regs, ENABLE);
 
@@ -376,22 +379,25 @@ int32_t PIOS_SPI_TransferByte(uint32_t spi_id, uint8_t b)
 	 */
 
 	/* Make sure the RXNE flag is cleared by reading the DR register */
-	/*dummy =*/(void)spi_dev->cfg->regs->DR;
-
-	/* Start the transfer */
-	spi_dev->cfg->regs->DR = b;
-
-	/* Wait until there is a byte to read */
-	while (!(spi_dev->cfg->regs->SR & SPI_I2S_FLAG_RXNE)) ;
-
-	/* Read the rx'd byte */
-	rx_byte = spi_dev->cfg->regs->DR;
+	/*dummy =*///(void)SPI_ReceiveData8(spi_dev->cfg->regs);
 
 	/* Wait until the TXE goes high */
-	while (!(spi_dev->cfg->regs->SR & SPI_I2S_FLAG_TXE)) ;
+	while (SPI_I2S_GetFlagStatus(spi_dev->cfg->regs, SPI_I2S_FLAG_TXE) == RESET);
+
+	/* Start the transfer */
+	SPI_SendData8(spi_dev->cfg->regs, b);
+
+	/* Wait until there is a byte to read */
+	while (SPI_I2S_GetFlagStatus(spi_dev->cfg->regs, SPI_I2S_FLAG_RXNE) == RESET);
+
+	/* Read the rx'd byte */
+	rx_byte = SPI_ReceiveData8(spi_dev->cfg->regs);
+
+	/* Wait until the TXE goes high */
+//	while (!(spi_dev->cfg->regs->SR & SPI_I2S_FLAG_TXE)) ;
 
 	/* Wait for SPI transfer to have fully completed */
-	while (spi_dev->cfg->regs->SR & SPI_I2S_FLAG_BSY) ;
+//	while (spi_dev->cfg->regs->SR & SPI_I2S_FLAG_BSY) ;
 
 	/* Return received byte */
 	return rx_byte;
@@ -432,8 +438,8 @@ static int32_t SPI_DMA_TransferBlock(uint32_t spi_id, const uint8_t *send_buffer
 	DMA_Cmd(spi_dev->cfg->dma.tx.channel, DISABLE);
 
 	//fixme: dont know how to replace this
-	//while(DMA_GetCmdStatus(spi_dev->cfg->dma.rx.channel) == ENABLE);
-	//while(DMA_GetCmdStatus(spi_dev->cfg->dma.tx.channel) == ENABLE);
+//	while(DMA_GetCmdStatus(spi_dev->cfg->dma.rx.channel) == ENABLE);
+//	while(DMA_GetCmdStatus(spi_dev->cfg->dma.tx.channel) == ENABLE);
 
 	/* Disable the SPI peripheral */
 	/* Initialize the SPI block */
@@ -581,31 +587,35 @@ static int32_t SPI_PIO_TransferBlock(uint32_t spi_id, const uint8_t *send_buffer
 //	}
 
 	/* Make sure the RXNE flag is cleared by reading the DR register */
-	b = spi_dev->cfg->regs->DR;
+	//b = SPI_ReceiveData8(spi_dev->cfg->regs);
 
 	while (len--) {
 		/* get the byte to send */
 		b = send_buffer ? *(send_buffer++) : 0xff;
 
+		/* Wait until the TXE goes high */
+		while (SPI_I2S_GetFlagStatus(spi_dev->cfg->regs, SPI_I2S_FLAG_TXE) == RESET);
+
 		/* Start the transfer */
-		spi_dev->cfg->regs->DR = b;
+		SPI_SendData8(spi_dev->cfg->regs, b);
 
 		/* Wait until there is a byte to read */
-		while (!(spi_dev->cfg->regs->SR & SPI_I2S_FLAG_RXNE)) ;
+		while (SPI_I2S_GetFlagStatus(spi_dev->cfg->regs, SPI_I2S_FLAG_RXNE) == RESET);
 
 		/* Read the rx'd byte */
-		b = spi_dev->cfg->regs->DR;
+		//b = spi_dev->cfg->regs->DR;
+		b = SPI_ReceiveData8(spi_dev->cfg->regs);
 
 		/* save the received byte */
 		if (receive_buffer)
 			*(receive_buffer++) = b;
 
 		/* Wait until the TXE goes high */
-		while (!(spi_dev->cfg->regs->SR & SPI_I2S_FLAG_TXE)) ;
+		//while (!(spi_dev->cfg->regs->SR & SPI_I2S_FLAG_TXE)) ;
 	}
 
 	/* Wait for SPI transfer to have fully completed */
-	while (spi_dev->cfg->regs->SR & SPI_I2S_FLAG_BSY) ;
+	//while (spi_dev->cfg->regs->SR & SPI_I2S_FLAG_BSY) ;
 
 	return 0;
 }
