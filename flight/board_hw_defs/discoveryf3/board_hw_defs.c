@@ -42,7 +42,7 @@ static const struct pios_led pios_leds[] = {
 				.GPIO_Speed = GPIO_Speed_50MHz,
 				.GPIO_Mode  = GPIO_Mode_OUT,
 				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd = GPIO_PuPd_DOWN
+				.GPIO_PuPd = GPIO_PuPd_NOPULL
 			},
 		},
 		.active_high = true,
@@ -55,7 +55,7 @@ static const struct pios_led pios_leds[] = {
 				.GPIO_Speed = GPIO_Speed_50MHz,
 				.GPIO_Mode  = GPIO_Mode_OUT,
 				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd = GPIO_PuPd_DOWN
+				.GPIO_PuPd = GPIO_PuPd_NOPULL
 			},
 		},
 		.active_high = true,
@@ -68,7 +68,7 @@ static const struct pios_led pios_leds[] = {
 				.GPIO_Speed = GPIO_Speed_50MHz,
 				.GPIO_Mode  = GPIO_Mode_OUT,
 				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd = GPIO_PuPd_DOWN
+				.GPIO_PuPd = GPIO_PuPd_NOPULL
 			},
 		},
 		.active_high = true,
@@ -81,7 +81,7 @@ static const struct pios_led pios_leds[] = {
 				.GPIO_Speed = GPIO_Speed_50MHz,
 				.GPIO_Mode  = GPIO_Mode_OUT,
 				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd = GPIO_PuPd_DOWN
+				.GPIO_PuPd = GPIO_PuPd_NOPULL
 			},
 		},
 		.active_high = true,
@@ -94,7 +94,7 @@ static const struct pios_led pios_leds[] = {
 				.GPIO_Speed = GPIO_Speed_50MHz,
 				.GPIO_Mode  = GPIO_Mode_OUT,
 				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd = GPIO_PuPd_DOWN
+				.GPIO_PuPd = GPIO_PuPd_NOPULL
 			},
 		},
 		.active_high = true,
@@ -107,7 +107,7 @@ static const struct pios_led pios_leds[] = {
 				.GPIO_Speed = GPIO_Speed_50MHz,
 				.GPIO_Mode  = GPIO_Mode_OUT,
 				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd = GPIO_PuPd_DOWN
+				.GPIO_PuPd = GPIO_PuPd_NOPULL
 			},
 		},
 		.active_high = true,
@@ -120,7 +120,7 @@ static const struct pios_led pios_leds[] = {
 				.GPIO_Speed = GPIO_Speed_50MHz,
 				.GPIO_Mode  = GPIO_Mode_OUT,
 				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd = GPIO_PuPd_DOWN
+				.GPIO_PuPd = GPIO_PuPd_NOPULL
 			},
 		},
 		.active_high = true,
@@ -133,7 +133,7 @@ static const struct pios_led pios_leds[] = {
 				.GPIO_Speed = GPIO_Speed_50MHz,
 				.GPIO_Mode  = GPIO_Mode_OUT,
 				.GPIO_OType = GPIO_OType_PP,
-				.GPIO_PuPd = GPIO_PuPd_DOWN
+				.GPIO_PuPd = GPIO_PuPd_NOPULL
 			},
 		},
 		.active_high = true,
@@ -150,6 +150,80 @@ static const struct pios_led_cfg pios_led_cfg = {
 
 #if defined(PIOS_INCLUDE_SPI)
 #include <pios_spi_priv.h>
+
+/* SPI1 Interface
+ *      - Used for flash communications
+ */
+void PIOS_SPI_gyro_irq_handler(void);
+void SPI1_IRQHandler(void) __attribute__((alias("PIOS_SPI_gyro_irq_handler")));
+static const struct pios_spi_cfg pios_spi_gyro_cfg = {
+	.regs = SPI1,
+	.remap = GPIO_AF_5,
+	.init = {
+		.SPI_Mode              = SPI_Mode_Master,
+		.SPI_Direction         = SPI_Direction_2Lines_FullDuplex,
+		.SPI_DataSize          = SPI_DataSize_8b,
+		.SPI_NSS               = SPI_NSS_Soft,
+		.SPI_FirstBit          = SPI_FirstBit_MSB,
+		.SPI_CRCPolynomial     = 7,
+		.SPI_CPOL              = SPI_CPOL_Low,
+		.SPI_CPHA              = SPI_CPHA_1Edge,
+		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_32,
+	},
+	.use_crc = false,
+	.sclk = {
+		.gpio = GPIOA,
+		.init = {
+			.GPIO_Pin = GPIO_Pin_5,
+			.GPIO_Speed = GPIO_Speed_50MHz,
+			.GPIO_Mode = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd = GPIO_PuPd_NOPULL
+		},
+		.pin_source = GPIO_PinSource5,
+	},
+	.miso = {
+		.gpio = GPIOA,
+		.init = {
+			.GPIO_Pin = GPIO_Pin_6,
+			.GPIO_Speed = GPIO_Speed_50MHz,
+			.GPIO_Mode = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd = GPIO_PuPd_NOPULL
+		},
+		.pin_source = GPIO_PinSource6,
+	},
+	.mosi = {
+		.gpio = GPIOA,
+		.init = {
+			.GPIO_Pin = GPIO_Pin_7,
+			.GPIO_Speed = GPIO_Speed_50MHz,
+			.GPIO_Mode = GPIO_Mode_AF,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd = GPIO_PuPd_NOPULL
+		},
+		.pin_source = GPIO_PinSource7,
+	},
+	.slave_count = 1,
+	.ssel = { {
+		.gpio = GPIOE,
+		.init = {
+			.GPIO_Pin = GPIO_Pin_3,
+			.GPIO_Speed = GPIO_Speed_50MHz,
+			.GPIO_Mode  = GPIO_Mode_OUT,
+			.GPIO_OType = GPIO_OType_PP,
+			.GPIO_PuPd = GPIO_PuPd_UP
+		},
+	} },
+};
+
+uint32_t pios_spi_gyro_id;
+void PIOS_SPI_gyro_irq_handler(void)
+{
+	/* Call into the generic code to handle the IRQ for this specific device */
+	PIOS_SPI_IRQ_Handler(pios_spi_gyro_id);
+}
+
 
 /* SPI2 Interface
  *      - Used for flash communications
@@ -236,21 +310,22 @@ void PIOS_SPI_flash_irq_handler(void)
 /*
  * I2C Adapters
  */
-void PIOS_I2C_gyro_accel_ev_irq_handler(void);
-void PIOS_I2C_gyro_accel_er_irq_handler(void);
-void I2C1_EV_IRQHandler() __attribute__ ((alias ("PIOS_I2C_gyro_accel_ev_irq_handler")));
-void I2C1_ER_IRQHandler() __attribute__ ((alias ("PIOS_I2C_gyro_accel_er_irq_handler")));
+void PIOS_I2C_accel_ev_irq_handler(void);
+void PIOS_I2C_accel_er_irq_handler(void);
+void I2C1_EV_IRQHandler() __attribute__ ((alias ("PIOS_I2C_accel_ev_irq_handler")));
+void I2C1_ER_IRQHandler() __attribute__ ((alias ("PIOS_I2C_accel_er_irq_handler")));
 
-static const struct pios_i2c_adapter_cfg pios_i2c_gyro_accel_cfg = {
+static const struct pios_i2c_adapter_cfg pios_i2c_accel_cfg = {
   .regs = I2C1,
-//  .remap = GPIO_AF_I2C1,
+  .remap = GPIO_AF4,
   .init = {
     .I2C_Mode                = I2C_Mode_I2C,
     .I2C_OwnAddress1         = 0,
     .I2C_Ack                 = I2C_Ack_Enable,
     .I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit,
-//    .I2C_DutyCycle           = I2C_DutyCycle_2,
-//    .I2C_ClockSpeed          = 400000,	/* bits/s */
+    .I2C_DigitalFilter       = 0x00,
+    .I2C_AnalogFilter        = I2C_AnalogFilter_Enable,
+    .I2C_Timing              = 0x00902025,
   },
   .transfer_timeout_ms = 50,
   .scl = {
@@ -260,20 +335,20 @@ static const struct pios_i2c_adapter_cfg pios_i2c_gyro_accel_cfg = {
             .GPIO_Mode  = GPIO_Mode_AF,
             .GPIO_Speed = GPIO_Speed_50MHz,
             .GPIO_OType = GPIO_OType_OD,
-            .GPIO_PuPd  = GPIO_PuPd_NOPULL,
+            .GPIO_PuPd  = GPIO_PuPd_DOWN,
     },
 	.pin_source = GPIO_PinSource6,
   },
   .sda = {
     .gpio = GPIOB,
     .init = {
-			.GPIO_Pin = GPIO_Pin_9,
+			.GPIO_Pin = GPIO_Pin_7,
             .GPIO_Mode  = GPIO_Mode_AF,
             .GPIO_Speed = GPIO_Speed_50MHz,
             .GPIO_OType = GPIO_OType_OD,
-            .GPIO_PuPd  = GPIO_PuPd_NOPULL,
+            .GPIO_PuPd  = GPIO_PuPd_DOWN,
     },
-	.pin_source = GPIO_PinSource9,
+	.pin_source = GPIO_PinSource7,
   },
   .event = {
     .flags   = 0,		/* FIXME: check this */
@@ -296,16 +371,16 @@ static const struct pios_i2c_adapter_cfg pios_i2c_gyro_accel_cfg = {
 };
 
 uint32_t pios_i2c_gyro_accel_id;
-void PIOS_I2C_gyro_accel_ev_irq_handler(void)
+void PIOS_I2C_accel_ev_irq_handler(void)
 {
   /* Call into the generic code to handle the IRQ for this specific device */
   PIOS_I2C_EV_IRQ_Handler(pios_i2c_gyro_accel_id);
 }
 
-void PIOS_I2C_gyro_accel_er_irq_handler(void)
+void PIOS_I2C_accel_er_irq_handler(void)
 {
   /* Call into the generic code to handle the IRQ for this specific device */
-  PIOS_I2C_ER_IRQ_Handler(pios_i2c_gyro_accel_id);
+  PIOS_I2C_ER_IRQ_Handler(pios_i2c_accel_id);
 }
 
 #endif /* PIOS_INCLUDE_I2C */

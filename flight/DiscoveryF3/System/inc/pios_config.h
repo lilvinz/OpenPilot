@@ -52,18 +52,18 @@
 //#define PIOS_INCLUDE_DSM			//depends on RTC
 //#define PIOS_INCLUDE_SBUS			//depends on RTC
 //#define PIOS_INCLUDE_PPM			//depends on RTC
-#define PIOS_INCLUDE_PWM
+//#define PIOS_INCLUDE_PWM
 //#define PIOS_INCLUDE_GCSRCVR		//depends on RTC
 
 /* Supported USART-based PIOS modules */
-#define PIOS_INCLUDE_TELEMETRY_RF
-#define PIOS_INCLUDE_GPS
+//#define PIOS_INCLUDE_TELEMETRY_RF
+//#define PIOS_INCLUDE_GPS
 #define PIOS_GPS_MINIMAL
 
-#define PIOS_INCLUDE_SERVO
+//#define PIOS_INCLUDE_SERVO
 #define PIOS_INCLUDE_SPI
 #define PIOS_INCLUDE_SYS
-#define PIOS_INCLUDE_USART
+//#define PIOS_INCLUDE_USART
 #define PIOS_INCLUDE_USB
 #define PIOS_INCLUDE_USB_HID
 //#define PIOS_INCLUDE_USB_CDC  //not implemented for f4xx yet
@@ -75,8 +75,7 @@
 #define PIOS_INCLUDE_WDG
 
 #define PIOS_INCLUDE_FLASH
-//#define PIOS_INCLUDE_MPU6050
-//#define PIOS_MPU6050_ACCEL
+#define PIOS_INCLUDE_L3GD20
 
 /* A really shitty setting saving implementation */
 #define PIOS_INCLUDE_FLASH_SECTOR_SETTINGS
@@ -99,7 +98,7 @@
 #define CPULOAD_LIMIT_CRITICAL		95
 
 // This actually needs calibrating
-#define IDLE_COUNTS_PER_SEC_AT_NO_LOAD (8379692)
+#define IDLE_COUNTS_PER_SEC_AT_NO_LOAD (1995998)
 
 //This enables altitude hold in manualcontrol module
 //#define REVOLUTION

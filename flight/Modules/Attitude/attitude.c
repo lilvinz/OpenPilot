@@ -416,6 +416,19 @@ static int32_t updateSensorsCC3D(AccelsData * accelsData, GyrosData * gyrosData)
 
 	gyrosData->temperature = 35.0f + ((float) mpu6050_data.temperature + 512.0f) / 340.0f;
 	accelsData->temperature = 35.0f + ((float) mpu6050_data.temperature + 512.0f) / 340.0f;
+#elif defined(PIOS_INCLUDE_L3GD20)
+	struct pios_l3gd20_data gyro;
+	xQueueHandle gyro_queue = PIOS_L3GD20_GetQueue();
+
+	if(xQueueReceive(gyro_queue, (void *) &gyro, 4) == errQUEUE_EMPTY)
+		return -1;	// Error, no data
+
+	gyros[0] = gyro.gyro_x * PIOS_L3GD20_GetScale();
+	gyros[1] = gyro.gyro_y * PIOS_L3GD20_GetScale();
+	gyros[2] = gyro.gyro_z * PIOS_L3GD20_GetScale();
+
+	// Get temp from last reading
+	gyrosData->temperature = gyro.temperature;
 #endif
 	if(rotate) {
 		// TODO: rotate sensors too so stabilization is well behaved

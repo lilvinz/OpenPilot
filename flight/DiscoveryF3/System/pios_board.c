@@ -77,6 +77,7 @@ uint32_t pios_com_vcp_id;
  * Setup a com port based on the passed cfg, driver and buffer sizes. tx size of -1 make the port rx only
  */
 
+#ifdef PIOS_INCLUDE_USART
 static void PIOS_Board_configure_com(const struct pios_usart_cfg *usart_port_cfg, size_t rx_buf_len, size_t tx_buf_len,
 		const struct pios_com_driver *com_driver, uint32_t *pios_com_id) 
 {
@@ -105,7 +106,9 @@ static void PIOS_Board_configure_com(const struct pios_usart_cfg *usart_port_cfg
 		}
 	}
 }
-/*
+#endif
+
+#ifdef PIOS_INCLUDE_DSM
 static void PIOS_Board_configure_dsm(const struct pios_usart_cfg *pios_usart_dsm_cfg, const struct pios_dsm_cfg *pios_dsm_cfg, 
 		const struct pios_com_driver *pios_usart_com_driver,enum pios_dsm_proto *proto, 
 		ManualControlSettingsChannelGroupsOptions channelgroup,uint8_t *bind)
@@ -127,20 +130,20 @@ static void PIOS_Board_configure_dsm(const struct pios_usart_cfg *pios_usart_dsm
 	}
 	pios_rcvr_group_map[channelgroup] = pios_dsm_rcvr_id;
 }
-*/
+#endif
 
 /**
- * Configuration for the MPU6050 chip
+ * Configuration for L3GD20 chip
  */
-#if defined(PIOS_INCLUDE_MPU6050)
-#include "pios_mpu6050.h"
-static const struct pios_exti_cfg pios_exti_mpu6050_cfg __exti_config = {
-	.vector = PIOS_MPU6050_IRQHandler,
-	.line = EXTI_Line11,
+#if defined(PIOS_INCLUDE_L3GD20)
+#include "pios_l3gd20.h"
+static const struct pios_exti_cfg pios_exti_l3gd20_cfg __exti_config = {
+	.vector = PIOS_L3GD20_IRQHandler,
+	.line = EXTI_Line1,
 	.pin = {
-		.gpio = GPIOD,
+		.gpio = GPIOE,
 		.init = {
-			.GPIO_Pin = GPIO_Pin_11,
+			.GPIO_Pin = GPIO_Pin_1,
 			.GPIO_Speed = GPIO_Speed_50MHz,
 			.GPIO_Mode = GPIO_Mode_IN,
 			.GPIO_OType = GPIO_OType_OD,
@@ -149,15 +152,15 @@ static const struct pios_exti_cfg pios_exti_mpu6050_cfg __exti_config = {
 	},
 	.irq = {
 		.init = {
-			.NVIC_IRQChannel = EXTI15_10_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
+			.NVIC_IRQChannel = EXTI1_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_HIGH,
 			.NVIC_IRQChannelSubPriority = 0,
 			.NVIC_IRQChannelCmd = ENABLE,
 		},
 	},
 	.exti = {
 		.init = {
-			.EXTI_Line = EXTI_Line11, // matches above GPIO pin
+			.EXTI_Line = EXTI_Line1, // matches above GPIO pin
 			.EXTI_Mode = EXTI_Mode_Interrupt,
 			.EXTI_Trigger = EXTI_Trigger_Rising,
 			.EXTI_LineCmd = ENABLE,
@@ -165,20 +168,11 @@ static const struct pios_exti_cfg pios_exti_mpu6050_cfg __exti_config = {
 	},
 };
 
-static const struct pios_mpu6050_cfg pios_mpu6050_cfg = {
-	.exti_cfg = &pios_exti_mpu6050_cfg,
-	.Fifo_store = PIOS_MPU6050_FIFO_TEMP_OUT | PIOS_MPU6050_FIFO_GYRO_X_OUT | PIOS_MPU6050_FIFO_GYRO_Y_OUT | PIOS_MPU6050_FIFO_GYRO_Z_OUT,
-	// Clock at 8kHz, downsampled by 8 for 1kHz
-	.Smpl_rate_div = 8 - 1,
-	.interrupt_cfg = PIOS_MPU6050_INT_CLR_ANYRD,
-	.interrupt_en = PIOS_MPU6050_INTEN_DATA_RDY,
-	.User_ctl = PIOS_MPU6050_USERCTL_FIFO_EN,
-	.Pwr_mgmt_clk = PIOS_MPU6050_PWRMGMT_PLL_X_CLK,
-	.accel_range = PIOS_MPU6050_ACCEL_8G,
-	.gyro_range = PIOS_MPU6050_SCALE_500_DEG,
-	.filter = PIOS_MPU6050_LOWPASS_256_HZ
+static const struct pios_l3gd20_cfg pios_l3gd20_cfg = {
+	.exti_cfg = &pios_exti_l3gd20_cfg,
+	.range = PIOS_L3GD20_SCALE_500_DEG,
 };
-#endif /* PIOS_INCLUDE_MPU6050 */
+#endif /* PIOS_INCLUDE_L3GD20 */
 
 /*
 static const struct flashfs_cfg flashfs_m25p_cfg = {
@@ -211,13 +205,13 @@ void PIOS_Board_Init(void) {
 	PIOS_LED_Init(&pios_led_cfg);
 #endif	/* PIOS_INCLUDE_LED */
 	
-/*
-	if (PIOS_SPI_Init(&pios_spi_flash_id, &pios_spi_flash_cfg)) {
+#if defined(PIOS_INCLUDE_FLASH)
+/*	if (PIOS_SPI_Init(&pios_spi_flash_id, &pios_spi_flash_cfg)) {
 		PIOS_Assert(0);
 	}
 	PIOS_Flash_Jedec_Init(pios_spi_flash_id, 0, &flash_m25p_cfg);	
-	PIOS_FLASHFS_Init(&flashfs_m25p_cfg);
-*/
+	PIOS_FLASHFS_Init(&flashfs_m25p_cfg);*/
+#endif
 	
 	/* Initialize UAVObject libraries */
 	EventDispatcherInitialize();
@@ -233,7 +227,7 @@ void PIOS_Board_Init(void) {
 #ifndef ERASE_FLASH
 	/* Initialize watchdog as early as possible to catch faults during init */
 #ifndef DEBUG
-	PIOS_WDG_Init();
+	//PIOS_WDG_Init();
 #endif
 #endif
 
@@ -248,7 +242,6 @@ void PIOS_Board_Init(void) {
 	PIOS_TIM_InitClock(&tim_2_cfg);
 	PIOS_TIM_InitClock(&tim_4_cfg);
 	PIOS_TIM_InitClock(&tim_8_cfg);
-//	PIOS_TIM_InitClock(&tim_9_cfg);
 	//outputs
 	PIOS_TIM_InitClock(&tim_1_cfg);
 	PIOS_TIM_InitClock(&tim_3_cfg);
@@ -317,10 +310,6 @@ void PIOS_Board_Init(void) {
 
 #endif	/* PIOS_INCLUDE_USB_HID */
 	
-	//if (usb_hid_present || usb_cdc_present) {
-	//	PIOS_USBHOOK_Activate();
-	//}
-	
 #endif	/* PIOS_INCLUDE_USB */
 
 
@@ -335,13 +324,13 @@ void PIOS_Board_Init(void) {
 	case HWSETTINGS_CC_MAINPORT_DISABLED:
 		break;
 	case HWSETTINGS_CC_MAINPORT_TELEMETRY:
-#if defined(PIOS_INCLUDE_TELEMETRY_RF)
+#if defined(PIOS_INCLUDE_TELEMETRY_RF) && defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
 		PIOS_Board_configure_com(&pios_usart3_cfg, PIOS_COM_TELEM_RF_RX_BUF_LEN, PIOS_COM_TELEM_RF_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_telem_rf_id);
 #endif /* PIOS_INCLUDE_TELEMETRY_RF */
 		break;
 	case HWSETTINGS_CC_MAINPORT_SBUS:
 		//hardware signal inverter required
-#if defined(PIOS_INCLUDE_SBUS)
+#if defined(PIOS_INCLUDE_SBUS) && defined(PIOS_INCLUDE_USART)
 		{
 			uint32_t pios_usart_sbus_id;
 			if (PIOS_USART_Init(&pios_usart_sbus_id, &pios_usart3_sbus_cfg)) {
@@ -363,7 +352,7 @@ void PIOS_Board_Init(void) {
 #endif	/* PIOS_INCLUDE_SBUS */
 		break;
 	case HWSETTINGS_CC_MAINPORT_GPS:
-#if defined(PIOS_INCLUDE_GPS)
+#if defined(PIOS_INCLUDE_GPS) && defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
 		PIOS_Board_configure_com(&pios_usart3_cfg, PIOS_COM_GPS_RX_BUF_LEN, -1, &pios_usart_com_driver, &pios_com_gps_id);
 #endif
 		break;
@@ -394,10 +383,14 @@ void PIOS_Board_Init(void) {
 #endif	/* PIOS_INCLUDE_DSM */
 		break;
 	case HWSETTINGS_CC_MAINPORT_COMAUX:
-//		PIOS_Board_configure_com(&pios_usart3_cfg, PIOS_COM_AUX_RX_BUF_LEN, PIOS_COM_AUX_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_aux_id);
+#if defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
+		PIOS_Board_configure_com(&pios_usart3_cfg, PIOS_COM_AUX_RX_BUF_LEN, PIOS_COM_AUX_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_aux_id);
+#endif
 		break;
 	case HWSETTINGS_CC_MAINPORT_COMBRIDGE:
-//		PIOS_Board_configure_com(&pios_usart3_cfg, PIOS_COM_BRIDGE_RX_BUF_LEN, PIOS_COM_BRIDGE_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_bridge_id);
+#if defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
+		PIOS_Board_configure_com(&pios_usart3_cfg, PIOS_COM_BRIDGE_RX_BUF_LEN, PIOS_COM_BRIDGE_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_bridge_id);
+#endif
 		break;
 	}
 
@@ -409,12 +402,12 @@ void PIOS_Board_Init(void) {
 	case HWSETTINGS_CC_FLEXIPORT_DISABLED:
 		break;
 	case HWSETTINGS_CC_FLEXIPORT_TELEMETRY:
-#if defined(PIOS_INCLUDE_TELEMETRY_RF)
+#if defined(PIOS_INCLUDE_TELEMETRY_RF) && defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
 		PIOS_Board_configure_com(&pios_usart2_cfg, PIOS_COM_TELEM_RF_RX_BUF_LEN, PIOS_COM_TELEM_RF_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_telem_rf_id);
 #endif /* PIOS_INCLUDE_TELEMETRY_RF */
 		break;
 	case HWSETTINGS_CC_FLEXIPORT_GPS:
-#if defined(PIOS_INCLUDE_GPS)
+#if defined(PIOS_INCLUDE_GPS) && defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
 		PIOS_Board_configure_com(&pios_usart2_cfg, PIOS_COM_GPS_RX_BUF_LEN, -1, &pios_usart_com_driver, &pios_com_gps_id);
 #endif	/* PIOS_INCLUDE_GPS */
 		break;
@@ -445,10 +438,14 @@ void PIOS_Board_Init(void) {
 #endif	/* PIOS_INCLUDE_DSM */
 		break;
 	case HWSETTINGS_CC_FLEXIPORT_COMAUX:
-//		PIOS_Board_configure_com(&pios_usart2_cfg, PIOS_COM_AUX_RX_BUF_LEN, PIOS_COM_AUX_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_aux_id);
+#if defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
+		PIOS_Board_configure_com(&pios_usart2_cfg, PIOS_COM_AUX_RX_BUF_LEN, PIOS_COM_AUX_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_aux_id);
+#endif
 		break;
 	case HWSETTINGS_CC_FLEXIPORT_COMBRIDGE:
-//		PIOS_Board_configure_com(&pios_usart2_cfg, PIOS_COM_BRIDGE_RX_BUF_LEN, PIOS_COM_BRIDGE_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_bridge_id);
+#if defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
+		PIOS_Board_configure_com(&pios_usart2_cfg, PIOS_COM_BRIDGE_RX_BUF_LEN, PIOS_COM_BRIDGE_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_bridge_id);
+#endif
 		break;
 	case HWSETTINGS_CC_FLEXIPORT_I2C:
 		// not supported for this hardware
@@ -512,32 +509,31 @@ void PIOS_Board_Init(void) {
 		case HWSETTINGS_RV_RCVRPORT_PWM:
 		case HWSETTINGS_RV_RCVRPORT_PPM:
 			/* Set up the servo outputs */
+#ifdef PIOS_INCLUDE_SERVO
 			PIOS_Servo_Init(&pios_servo_cfg);
+#endif
 			break;
 		case HWSETTINGS_RV_RCVRPORT_PPMOUTPUTS:
 		case HWSETTINGS_RV_RCVRPORT_OUTPUTS:
 			//PIOS_Servo_Init(&pios_servo_rcvr_cfg);
 			//TODO: Prepare the configurations on board_hw_defs and handle here:
+#ifdef PIOS_INCLUDE_SERVO
 			PIOS_Servo_Init(&pios_servo_cfg);
+#endif
 			break;
 	}
 #else
 	PIOS_DEBUG_Init(&pios_tim_servo_all_channels, NELEMENTS(pios_tim_servo_all_channels));
 #endif
 
-#if defined(PIOS_INCLUDE_MPU6050)
-	/* Set up the I2C interface to the accelerometer*/
-	if (PIOS_I2C_Init(&pios_i2c_gyro_accel_id, &pios_i2c_gyro_accel_cfg)) {
+#if defined(PIOS_INCLUDE_L3GD20) && defined(PIOS_INCLUDE_SPI)
+	/* Set up the SPI interface to the gyro */
+	if (PIOS_SPI_Init(&pios_spi_gyro_id, &pios_spi_gyro_cfg)) {
 		PIOS_DEBUG_Assert(0);
 	}
-	
-	PIOS_MPU6050_Init(pios_i2c_gyro_accel_id, PIOS_MPU6050_I2C_ADD_A0_LOW, &pios_mpu6050_cfg);
-	{
-		uint8_t init_test;
-		init_test = PIOS_MPU6050_Test();
-		++init_test;
-	}
-#endif /* PIOS_INCLUDE_MPU6050 */
+	PIOS_L3GD20_Init(pios_spi_gyro_id, 0, &pios_l3gd20_cfg);
+	PIOS_Assert(PIOS_L3GD20_Test() == 0);
+#endif
 
 #if defined(PIOS_INCLUDE_GPIO)
 	PIOS_GPIO_Init();
