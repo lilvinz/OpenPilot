@@ -76,6 +76,7 @@ uint32_t pios_com_vcp_id;
 /* 
  * Setup a com port based on the passed cfg, driver and buffer sizes. tx size of -1 make the port rx only
  */
+#ifdef PIOS_INCLUDE_USART
 static void PIOS_Board_configure_com(const struct pios_usart_cfg *usart_port_cfg, size_t rx_buf_len, size_t tx_buf_len,
 		const struct pios_com_driver *com_driver, uint32_t *pios_com_id) 
 {
@@ -104,7 +105,9 @@ static void PIOS_Board_configure_com(const struct pios_usart_cfg *usart_port_cfg
 		}
 	}
 }
+#endif
 
+#ifdef PIOS_INCLUDE_DSM
 static void PIOS_Board_configure_dsm(const struct pios_usart_cfg *pios_usart_dsm_cfg, const struct pios_dsm_cfg *pios_dsm_cfg, 
 		const struct pios_com_driver *pios_usart_com_driver,enum pios_dsm_proto *proto, 
 		ManualControlSettingsChannelGroupsOptions channelgroup,uint8_t *bind)
@@ -126,7 +129,7 @@ static void PIOS_Board_configure_dsm(const struct pios_usart_cfg *pios_usart_dsm
 	}
 	pios_rcvr_group_map[channelgroup] = pios_dsm_rcvr_id;
 }
-
+#endif
 
 /**
  * Configuration for the MPU6050 chip
@@ -209,12 +212,13 @@ void PIOS_Board_Init(void) {
 #endif	/* PIOS_INCLUDE_LED */
 	
 
+#if defined(PIOS_INCLUDE_SPI) && defined(PIOS_INCLUDE_FLASH)
 	if (PIOS_SPI_Init(&pios_spi_flash_id, &pios_spi_flash_cfg)) {
 		PIOS_Assert(0);
 	}
 	PIOS_Flash_Jedec_Init(pios_spi_flash_id, 0, &flash_m25p_cfg);	
 	PIOS_FLASHFS_Init(&flashfs_m25p_cfg);
-	
+#endif
 	
 	/* Initialize UAVObject libraries */
 	EventDispatcherInitialize();
@@ -332,13 +336,13 @@ void PIOS_Board_Init(void) {
 	case HWSETTINGS_CC_MAINPORT_DISABLED:
 		break;
 	case HWSETTINGS_CC_MAINPORT_TELEMETRY:
-#if defined(PIOS_INCLUDE_TELEMETRY_RF)
+#if defined(PIOS_INCLUDE_TELEMETRY_RF) && defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
 		PIOS_Board_configure_com(&pios_usart3_cfg, PIOS_COM_TELEM_RF_RX_BUF_LEN, PIOS_COM_TELEM_RF_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_telem_rf_id);
 #endif /* PIOS_INCLUDE_TELEMETRY_RF */
 		break;
 	case HWSETTINGS_CC_MAINPORT_SBUS:
 		//hardware signal inverter required
-#if defined(PIOS_INCLUDE_SBUS)
+#if defined(PIOS_INCLUDE_SBUS) && defined(PIOS_INCLUDE_USART)
 		{
 			uint32_t pios_usart_sbus_id;
 			if (PIOS_USART_Init(&pios_usart_sbus_id, &pios_usart3_sbus_cfg)) {
@@ -360,7 +364,9 @@ void PIOS_Board_Init(void) {
 #endif	/* PIOS_INCLUDE_SBUS */
 		break;
 	case HWSETTINGS_CC_MAINPORT_GPS:
+#if defined(PIOS_INCLUDE_GPS) && defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
 		PIOS_Board_configure_com(&pios_usart3_cfg, PIOS_COM_GPS_RX_BUF_LEN, -1, &pios_usart_com_driver, &pios_com_gps_id);
+#endif
 		break;
 	case HWSETTINGS_CC_MAINPORT_DSM2:
 	case HWSETTINGS_CC_MAINPORT_DSMX10BIT:
@@ -389,10 +395,14 @@ void PIOS_Board_Init(void) {
 #endif	/* PIOS_INCLUDE_DSM */
 		break;
 	case HWSETTINGS_CC_MAINPORT_COMAUX:
+#if defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
 		PIOS_Board_configure_com(&pios_usart3_cfg, PIOS_COM_AUX_RX_BUF_LEN, PIOS_COM_AUX_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_aux_id);
+#endif
 		break;
 	case HWSETTINGS_CC_MAINPORT_COMBRIDGE:
+#if defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
 		PIOS_Board_configure_com(&pios_usart3_cfg, PIOS_COM_BRIDGE_RX_BUF_LEN, PIOS_COM_BRIDGE_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_bridge_id);
+#endif
 		break;
 	}
 
@@ -404,12 +414,12 @@ void PIOS_Board_Init(void) {
 	case HWSETTINGS_CC_FLEXIPORT_DISABLED:
 		break;
 	case HWSETTINGS_CC_FLEXIPORT_TELEMETRY:
-#if defined(PIOS_INCLUDE_TELEMETRY_RF)
+#if defined(PIOS_INCLUDE_TELEMETRY_RF) && defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
 		PIOS_Board_configure_com(&pios_usart2_cfg, PIOS_COM_TELEM_RF_RX_BUF_LEN, PIOS_COM_TELEM_RF_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_telem_rf_id);
 #endif /* PIOS_INCLUDE_TELEMETRY_RF */
 		break;
 	case HWSETTINGS_CC_FLEXIPORT_GPS:
-#if defined(PIOS_INCLUDE_GPS)
+#if defined(PIOS_INCLUDE_GPS) && defined(PIOS_INCLUDE_USART) && defined(PIOS_INCLUDE_COM)
 		PIOS_Board_configure_com(&pios_usart2_cfg, PIOS_COM_GPS_RX_BUF_LEN, -1, &pios_usart_com_driver, &pios_com_gps_id);
 #endif	/* PIOS_INCLUDE_GPS */
 		break;
@@ -440,10 +450,14 @@ void PIOS_Board_Init(void) {
 #endif	/* PIOS_INCLUDE_DSM */
 		break;
 	case HWSETTINGS_CC_FLEXIPORT_COMAUX:
+#if defined(PIOS_INCLUDE_COM)
 		PIOS_Board_configure_com(&pios_usart2_cfg, PIOS_COM_AUX_RX_BUF_LEN, PIOS_COM_AUX_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_aux_id);
+#endif
 		break;
 	case HWSETTINGS_CC_FLEXIPORT_COMBRIDGE:
+#if defined(PIOS_INCLUDE_COM)
 		PIOS_Board_configure_com(&pios_usart2_cfg, PIOS_COM_BRIDGE_RX_BUF_LEN, PIOS_COM_BRIDGE_TX_BUF_LEN, &pios_usart_com_driver, &pios_com_bridge_id);
+#endif
 		break;
 	case HWSETTINGS_CC_FLEXIPORT_I2C:
 		// not supported for this hardware
@@ -507,20 +521,24 @@ void PIOS_Board_Init(void) {
 		case HWSETTINGS_RV_RCVRPORT_PWM:
 		case HWSETTINGS_RV_RCVRPORT_PPM:
 			/* Set up the servo outputs */
+#ifdef PIOS_INCLUDE_SERVO
 			PIOS_Servo_Init(&pios_servo_cfg);
+#endif
 			break;
 		case HWSETTINGS_RV_RCVRPORT_PPMOUTPUTS:
 		case HWSETTINGS_RV_RCVRPORT_OUTPUTS:
 			//PIOS_Servo_Init(&pios_servo_rcvr_cfg);
 			//TODO: Prepare the configurations on board_hw_defs and handle here:
+#ifdef
 			PIOS_Servo_Init(&pios_servo_cfg);
+#endif
 			break;
 	}
 #else
 	PIOS_DEBUG_Init(&pios_tim_servo_all_channels, NELEMENTS(pios_tim_servo_all_channels));
 #endif
 
-#if defined(PIOS_INCLUDE_MPU6050)
+#if defined(PIOS_INCLUDE_MPU6050) && defined(PIOS_INCLUDE_I2C)
 	/* Set up the I2C interface to the accelerometer*/
 	if (PIOS_I2C_Init(&pios_i2c_gyro_accel_id, &pios_i2c_gyro_accel_cfg)) {
 		PIOS_DEBUG_Assert(0);
