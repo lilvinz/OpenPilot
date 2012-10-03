@@ -82,28 +82,26 @@ static uint8_t i2c_nack_counter = 0;
 static uint8_t i2c_timeout_counter = 0;
 #endif
 
-static void go_fsm_fault(struct pios_i2c_adapter *i2c_adapter);
-static void go_bus_error(struct pios_i2c_adapter *i2c_adapter);
-static void go_stopped(struct pios_i2c_adapter *i2c_adapter);
-static void go_starting(struct pios_i2c_adapter *i2c_adapter);
-static void go_write_byte(struct pios_i2c_adapter *i2c_adapter);
-static void go_read_byte(struct pios_i2c_adapter *i2c_adapter);
-static void go_transfer_complete(struct pios_i2c_adapter *i2c_adapter);
-static void go_nack(struct pios_i2c_adapter *i2c_adapter);
+static void go_fsm_fault(struct pios_i2c_adapter *i2c_adapter, bool *woken);
+static void go_bus_error(struct pios_i2c_adapter *i2c_adapter, bool *woken);
+static void go_stopped(struct pios_i2c_adapter *i2c_adapter, bool *woken);
+static void go_starting(struct pios_i2c_adapter *i2c_adapter, bool *woken);
+static void go_write_byte(struct pios_i2c_adapter *i2c_adapter, bool *woken);
+static void go_read_byte(struct pios_i2c_adapter *i2c_adapter, bool *woken);
+static void go_transfer_complete(struct pios_i2c_adapter *i2c_adapter, bool *woken);
+static void go_nack(struct pios_i2c_adapter *i2c_adapter, bool *woken);
 
 struct i2c_adapter_transition {
-	void (*entry_fn) (struct pios_i2c_adapter * i2c_adapter);
+	void (*entry_fn) (struct pios_i2c_adapter * i2c_adapter, bool *woken);
 	enum i2c_adapter_state next_state[I2C_EVENT_NUM_EVENTS];
 };
 
-static void i2c_adapter_process_auto(struct pios_i2c_adapter *i2c_adapter);
-static void i2c_adapter_inject_event(struct pios_i2c_adapter *i2c_adapter, enum i2c_adapter_event event);
+static void i2c_adapter_process_auto(struct pios_i2c_adapter *i2c_adapter, bool *woken);
+static void i2c_adapter_inject_event(struct pios_i2c_adapter *i2c_adapter, enum i2c_adapter_event event, bool *woken);
 static void i2c_adapter_fsm_init(struct pios_i2c_adapter *i2c_adapter);
-//static bool i2c_adapter_wait_for_stopped(struct pios_i2c_adapter *i2c_adapter);
 static void i2c_adapter_reset_bus(struct pios_i2c_adapter *i2c_adapter);
-
 static void i2c_adapter_log_fault(enum pios_i2c_error_type type);
-//static bool i2c_adapter_callback_handler(struct pios_i2c_adapter *i2c_adapter);
+static bool i2c_adapter_callback_handler(struct pios_i2c_adapter *i2c_adapter);
 
 const static struct i2c_adapter_transition i2c_adapter_transitions[I2C_STATE_NUM_STATES] = {
 	[I2C_STATE_FSM_FAULT] = {
@@ -175,7 +173,7 @@ const static struct i2c_adapter_transition i2c_adapter_transitions[I2C_STATE_NUM
 	},	
 };
 
-static void go_fsm_fault(struct pios_i2c_adapter *i2c_adapter)
+static void go_fsm_fault(struct pios_i2c_adapter *i2c_adapter, bool *woken)
 {
 #if defined(I2C_HALT_ON_ERRORS)
 	PIOS_DEBUG_Assert(0);
@@ -187,7 +185,7 @@ static void go_fsm_fault(struct pios_i2c_adapter *i2c_adapter)
 	
 }
 
-static void go_bus_error(struct pios_i2c_adapter *i2c_adapter)
+static void go_bus_error(struct pios_i2c_adapter *i2c_adapter, bool *woken)
 {
 	/* Note that this transfer has hit a bus error */
 	i2c_adapter->bus_error = true;
@@ -195,33 +193,30 @@ static void go_bus_error(struct pios_i2c_adapter *i2c_adapter)
 	i2c_adapter_reset_bus(i2c_adapter);
 }
 
-static void go_stopped(struct pios_i2c_adapter *i2c_adapter)
+static void go_stopped(struct pios_i2c_adapter *i2c_adapter, bool *woken)
 {
-#ifdef USE_FREERTOS
-	signed portBASE_TYPE pxHigherPriorityTaskWoken = pdFALSE;
-#endif
-
 	I2C_ITConfig(i2c_adapter->cfg->regs, I2C_IT_ERRI | I2C_IT_TCI | I2C_IT_NACKI | I2C_IT_RXI | I2C_IT_STOPI | I2C_IT_TXI, DISABLE);
 
 #ifdef USE_FREERTOS
-	if (xSemaphoreGiveFromISR(i2c_adapter->sem_ready, &pxHigherPriorityTaskWoken) != pdTRUE) {
+	portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
+	if (xSemaphoreGiveFromISR(i2c_adapter->sem_ready, &xHigherPriorityTaskWoken) != pdTRUE) {
 #if defined(I2C_HALT_ON_ERRORS)
 		PIOS_DEBUG_Assert(0);
 #endif
 	}
-	//portEND_SWITCHING_ISR(pxHigherPriorityTaskWoken);	/* FIXME: is this the right place for this? */
+	*woken = *woken || (xHigherPriorityTaskWoken == pdTRUE);
 #endif /* USE_FREERTOS */
-/*
+
 	if (i2c_adapter->callback)
 		i2c_adapter_callback_handler(i2c_adapter);
-*/
 }
 
-static void go_starting(struct pios_i2c_adapter *i2c_adapter)
+static void go_starting(struct pios_i2c_adapter *i2c_adapter, bool *woken)
 {
 	PIOS_DEBUG_Assert(i2c_adapter->active_txn);
 	PIOS_DEBUG_Assert(i2c_adapter->active_txn >= i2c_adapter->first_txn);
 	PIOS_DEBUG_Assert(i2c_adapter->active_txn <= i2c_adapter->last_txn);
+	PIOS_DEBUG_Assert(i2c_adapter->active_txn->len <= 255);	//FIXME: implement this using TCR
 
 	i2c_adapter->active_byte = &(i2c_adapter->active_txn->buf[0]);
 	i2c_adapter->last_byte = &(i2c_adapter->active_txn->buf[i2c_adapter->active_txn->len - 1]);
@@ -236,7 +231,7 @@ static void go_starting(struct pios_i2c_adapter *i2c_adapter)
 			i2c_adapter->active_txn->rw == PIOS_I2C_TXN_WRITE ? I2C_Generate_Start_Write : I2C_Generate_Start_Read);
 }
 
-static void go_write_byte(struct pios_i2c_adapter *i2c_adapter)
+static void go_write_byte(struct pios_i2c_adapter *i2c_adapter, bool *woken)
 {
 	PIOS_DEBUG_Assert(i2c_adapter->active_txn);
 	PIOS_DEBUG_Assert(i2c_adapter->active_txn >= i2c_adapter->first_txn);
@@ -249,7 +244,7 @@ static void go_write_byte(struct pios_i2c_adapter *i2c_adapter)
 	PIOS_DEBUG_Assert(i2c_adapter->active_byte <= i2c_adapter->last_byte);
 }
 
-static void go_read_byte(struct pios_i2c_adapter *i2c_adapter)
+static void go_read_byte(struct pios_i2c_adapter *i2c_adapter, bool *woken)
 {
 	PIOS_DEBUG_Assert(i2c_adapter->active_txn);
 	PIOS_DEBUG_Assert(i2c_adapter->active_txn >= i2c_adapter->first_txn);
@@ -262,14 +257,14 @@ static void go_read_byte(struct pios_i2c_adapter *i2c_adapter)
 	PIOS_DEBUG_Assert(i2c_adapter->active_byte <= i2c_adapter->last_byte);
 }
 
-static void go_transfer_complete(struct pios_i2c_adapter *i2c_adapter)
+static void go_transfer_complete(struct pios_i2c_adapter *i2c_adapter, bool *woken)
 {
 	/* Move to the next transaction */
 	i2c_adapter->active_txn++;
 	PIOS_DEBUG_Assert(i2c_adapter->active_txn <= i2c_adapter->last_txn);
 }
 
-static void go_nack(struct pios_i2c_adapter *i2c_adapter)
+static void go_nack(struct pios_i2c_adapter *i2c_adapter, bool *woken)
 {
 	i2c_adapter->nack = true;
 	I2C_ITConfig(i2c_adapter->cfg->regs, I2C_IT_ERRI | I2C_IT_TCI | I2C_IT_NACKI | I2C_IT_RXI | I2C_IT_STOPI | I2C_IT_TXI, DISABLE);
@@ -277,7 +272,7 @@ static void go_nack(struct pios_i2c_adapter *i2c_adapter)
 	I2C_GenerateSTOP(i2c_adapter->cfg->regs, ENABLE);
 }
 
-static void i2c_adapter_inject_event(struct pios_i2c_adapter *i2c_adapter, enum i2c_adapter_event event)
+static void i2c_adapter_inject_event(struct pios_i2c_adapter *i2c_adapter, enum i2c_adapter_event event, bool *woken)
 {
 	PIOS_IRQ_Disable();
 
@@ -305,16 +300,16 @@ static void i2c_adapter_inject_event(struct pios_i2c_adapter *i2c_adapter, enum 
 
 	/* Call the entry function (if any) for the next state. */
 	if (i2c_adapter_transitions[i2c_adapter->curr_state].entry_fn) {
-		i2c_adapter_transitions[i2c_adapter->curr_state].entry_fn(i2c_adapter);
+		i2c_adapter_transitions[i2c_adapter->curr_state].entry_fn(i2c_adapter, woken);
 	}
 
 	/* Process any AUTO transitions in the FSM */
-	i2c_adapter_process_auto(i2c_adapter);
+	i2c_adapter_process_auto(i2c_adapter, woken);
 
 	PIOS_IRQ_Enable();
 }
 
-static void i2c_adapter_process_auto(struct pios_i2c_adapter *i2c_adapter)
+static void i2c_adapter_process_auto(struct pios_i2c_adapter *i2c_adapter, bool *woken)
 {
 	PIOS_IRQ_Disable();
 
@@ -326,7 +321,7 @@ static void i2c_adapter_process_auto(struct pios_i2c_adapter *i2c_adapter)
 
 		/* Call the entry function (if any) for the next state. */
 		if (i2c_adapter_transitions[i2c_adapter->curr_state].entry_fn) {
-			i2c_adapter_transitions[i2c_adapter->curr_state].entry_fn(i2c_adapter);
+			i2c_adapter_transitions[i2c_adapter->curr_state].entry_fn(i2c_adapter, woken);
 		}
 	}
 
@@ -338,29 +333,6 @@ static void i2c_adapter_fsm_init(struct pios_i2c_adapter *i2c_adapter)
 	i2c_adapter_reset_bus(i2c_adapter);
 	i2c_adapter->curr_state = I2C_STATE_STOPPED;
 }
-
-#if 0
-static bool i2c_adapter_wait_for_stopped(struct pios_i2c_adapter *i2c_adapter)
-{
-	uint32_t guard;
-
-	/*
-	 * Wait for the bus to return to the stopped state.
-	 * This was pulled out of the FSM due to occasional
-	 * failures at this transition which previously resulted
-	 * in spinning on this bit in the ISR forever.
-	 */
-	for (guard = 1e6;	/* FIXME: should use the configured bus timeout */
-	     guard && (i2c_adapter->cfg->regs->CR2 & I2C_CR2_STOP); guard--)
-		continue;
-	if (!guard) {
-		/* We timed out waiting for the stop condition */
-		return false;
-	}
-
-	return true;
-}
-#endif
 
 static void i2c_adapter_reset_bus(struct pios_i2c_adapter *i2c_adapter)
 {
@@ -455,7 +427,7 @@ static bool i2c_adapter_fsm_terminated(struct pios_i2c_adapter *i2c_adapter)
 		return (false);
 	}
 }
-#if 0
+
 uint32_t i2c_cb_count = 0;
 static bool i2c_adapter_callback_handler(struct pios_i2c_adapter * i2c_adapter) 
 {
@@ -466,16 +438,11 @@ static bool i2c_adapter_callback_handler(struct pios_i2c_adapter * i2c_adapter)
 	timeout = i2c_adapter->cfg->transfer_timeout_ms / portTICK_RATE_MS;
 	semaphore_success &= (xSemaphoreTake(i2c_adapter->sem_ready, timeout) == pdTRUE);
 	xSemaphoreGive(i2c_adapter->sem_ready);
-#endif /* USE_FREERTOS */
-	
+#else
 	/* Spin waiting for the transfer to finish */
 	while (!i2c_adapter_fsm_terminated(i2c_adapter)) ;
-	
-	if (i2c_adapter_wait_for_stopped(i2c_adapter)) {
-		i2c_adapter_inject_event(i2c_adapter, I2C_EVENT_STOPPED);
-	} else {
-		i2c_adapter_fsm_init(i2c_adapter);
-	}
+#endif /* USE_FREERTOS */
+
 	
 	// Execute user supplied function
 	i2c_adapter->callback();
@@ -493,10 +460,9 @@ static bool i2c_adapter_callback_handler(struct pios_i2c_adapter * i2c_adapter)
 	PIOS_IRQ_Enable();
 #endif /* USE_FREERTOS */
 	
-
 	return (!i2c_adapter->bus_error) && semaphore_success;
 }
-#endif
+
 
 /**
  * Logs the last N state transitions and N IRQ events due to
@@ -672,23 +638,17 @@ int32_t PIOS_I2C_Transfer(uint32_t i2c_id, const struct pios_i2c_txn txn_list[],
 	i2c_adapter->callback = NULL;
 	i2c_adapter->bus_error = false;
 	i2c_adapter->nack = false;
-	i2c_adapter_inject_event(i2c_adapter, I2C_EVENT_START);
+
+	bool dummy = false;
+	i2c_adapter_inject_event(i2c_adapter, I2C_EVENT_START, &dummy);
 
 	/* Wait for the transfer to complete */
 #ifdef USE_FREERTOS
 	semaphore_success = (xSemaphoreTake(i2c_adapter->sem_ready, timeout) == pdTRUE);
-#endif /* USE_FREERTOS */
-
+#else
 	/* Spin waiting for the transfer to finish */
 	while (!i2c_adapter_fsm_terminated(i2c_adapter)) ;
-
-#if 0
-	if (i2c_adapter_wait_for_stopped(i2c_adapter)) {
-		i2c_adapter_inject_event(i2c_adapter, I2C_EVENT_STOPPED);
-	} else {
-		i2c_adapter_fsm_init(i2c_adapter);
-	}
-#endif
+#endif /* USE_FREERTOS */
 
 #ifdef USE_FREERTOS
 	/* Unlock the bus */
@@ -706,7 +666,7 @@ int32_t PIOS_I2C_Transfer(uint32_t i2c_id, const struct pios_i2c_txn txn_list[],
 	i2c_adapter->nack ? -3 :
 	0;
 }
-#if 0
+
 int32_t PIOS_I2C_Transfer_Callback(uint32_t i2c_id, const struct pios_i2c_txn txn_list[], uint32_t num_txns, void *callback)
 {
 	struct pios_i2c_adapter * i2c_adapter = (struct pios_i2c_adapter *)i2c_id;
@@ -737,21 +697,16 @@ int32_t PIOS_I2C_Transfer_Callback(uint32_t i2c_id, const struct pios_i2c_txn tx
 	i2c_adapter->first_txn = &txn_list[0];
 	i2c_adapter->last_txn = &txn_list[num_txns - 1];
 	i2c_adapter->active_txn = i2c_adapter->first_txn;
-	
-#ifdef USE_FREERTOS
-	// Make sure the done/ready semaphore is consumed before we start
-	semaphore_success &= (xSemaphoreTake(i2c_adapter->sem_ready, timeout) == pdTRUE);
-#endif
-	
 	i2c_adapter->callback = callback;
 	i2c_adapter->bus_error = false;
-	i2c_adapter_inject_event(i2c_adapter, I2C_EVENT_START);
 	
+	bool dummy = false;
+	i2c_adapter_inject_event(i2c_adapter, I2C_EVENT_START, &dummy);
+
 	return !semaphore_success ? -2 : 0;
 
 	return 0;
 }
-#endif
 
 void PIOS_I2C_EV_IRQ_Handler(uint32_t i2c_id)
 {
@@ -760,6 +715,8 @@ void PIOS_I2C_EV_IRQ_Handler(uint32_t i2c_id)
 	bool valid = PIOS_I2C_validate(i2c_adapter);
 	PIOS_Assert(valid)
 
+	bool woken = false;
+
 	if (I2C_GetFlagStatus(i2c_adapter->cfg->regs, I2C_FLAG_RXNE))
 	{
 		//flag will be cleared by event
@@ -767,7 +724,7 @@ void PIOS_I2C_EV_IRQ_Handler(uint32_t i2c_id)
 		i2c_erirq_history[i2c_erirq_history_pointer] = I2C_FLAG_RXNE;
 		i2c_erirq_history_pointer = (i2c_erirq_history_pointer + 1) % I2C_LOG_DEPTH;
 #endif
-		i2c_adapter_inject_event(i2c_adapter, I2C_EVENT_RECEIVER_BUFFER_NOT_EMPTY);
+		i2c_adapter_inject_event(i2c_adapter, I2C_EVENT_RECEIVER_BUFFER_NOT_EMPTY, &woken);
 	}
 
 	if (I2C_GetFlagStatus(i2c_adapter->cfg->regs, I2C_FLAG_TXIS))
@@ -777,7 +734,7 @@ void PIOS_I2C_EV_IRQ_Handler(uint32_t i2c_id)
 		i2c_erirq_history[i2c_erirq_history_pointer] = I2C_FLAG_TXIS;
 		i2c_erirq_history_pointer = (i2c_erirq_history_pointer + 1) % I2C_LOG_DEPTH;
 #endif
-		i2c_adapter_inject_event(i2c_adapter, I2C_EVENT_TRANSMIT_BUFFER_EMPTY);
+		i2c_adapter_inject_event(i2c_adapter, I2C_EVENT_TRANSMIT_BUFFER_EMPTY, &woken);
 	}
 
 	if (I2C_GetFlagStatus(i2c_adapter->cfg->regs, I2C_FLAG_NACKF))
@@ -787,10 +744,9 @@ void PIOS_I2C_EV_IRQ_Handler(uint32_t i2c_id)
 		i2c_erirq_history[i2c_erirq_history_pointer] = I2C_FLAG_NACKF;
 		i2c_erirq_history_pointer = (i2c_erirq_history_pointer + 1) % I2C_LOG_DEPTH;
 #endif
-		i2c_adapter_inject_event(i2c_adapter, I2C_EVENT_NACK);
+		i2c_adapter_inject_event(i2c_adapter, I2C_EVENT_NACK, &woken);
 	}
 
-	//not used by this driver
 	if (I2C_GetFlagStatus(i2c_adapter->cfg->regs, I2C_FLAG_TC))
 	{
 		I2C_ClearFlag(i2c_adapter->cfg->regs, I2C_FLAG_TC);
@@ -798,7 +754,7 @@ void PIOS_I2C_EV_IRQ_Handler(uint32_t i2c_id)
 		i2c_erirq_history[i2c_erirq_history_pointer] = I2C_FLAG_TC;
 		i2c_erirq_history_pointer = (i2c_erirq_history_pointer + 1) % I2C_LOG_DEPTH;
 #endif
-		i2c_adapter_inject_event(i2c_adapter, I2C_EVENT_TRANSFER_COMPLETE);
+		i2c_adapter_inject_event(i2c_adapter, I2C_EVENT_TRANSFER_COMPLETE, &woken);
 	}
 
 	if (I2C_GetFlagStatus(i2c_adapter->cfg->regs, I2C_FLAG_STOPF))
@@ -808,9 +764,12 @@ void PIOS_I2C_EV_IRQ_Handler(uint32_t i2c_id)
 		i2c_erirq_history[i2c_erirq_history_pointer] = I2C_FLAG_STOPF;
 		i2c_erirq_history_pointer = (i2c_erirq_history_pointer + 1) % I2C_LOG_DEPTH;
 #endif
-		i2c_adapter_inject_event(i2c_adapter, I2C_EVENT_STOP);
+		i2c_adapter_inject_event(i2c_adapter, I2C_EVENT_STOP, &woken);
 	}
 
+#ifdef USE_FREERTOS
+	portEND_SWITCHING_ISR(woken == true ? pdTRUE : pdFALSE);
+#endif
 }
 
 
@@ -881,7 +840,12 @@ void PIOS_I2C_ER_IRQ_Handler(uint32_t i2c_id)
 	i2c_adapter_log_fault(PIOS_I2C_ERROR_INTERRUPT);
 
 	/* Fail hard on any errors for now */
-	i2c_adapter_inject_event(i2c_adapter, I2C_EVENT_BUS_ERROR);
+	bool woken = false;
+	i2c_adapter_inject_event(i2c_adapter, I2C_EVENT_BUS_ERROR, &woken);
+
+#ifdef USE_FREERTOS
+	portEND_SWITCHING_ISR(woken == true ? pdTRUE : pdFALSE);
+#endif
 }
 
 #endif
