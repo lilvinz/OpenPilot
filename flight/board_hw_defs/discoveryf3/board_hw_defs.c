@@ -654,10 +654,8 @@ static const struct pios_usart_cfg pios_usart3_cfg = {
 void PIOS_RTC_IRQ_Handler (void);
 void RTC_WKUP_IRQHandler() __attribute__ ((alias ("PIOS_RTC_IRQ_Handler")));
 static const struct pios_rtc_cfg pios_rtc_main_cfg = {
-	.clksrc = RCC_RTCCLKSource_HSE_Div32, // Divide 8 Mhz crystal down to 1
-	// For some reason it's acting like crystal is 16 Mhz.  This clock is then divided
-	// by another 32 to give a nominal 125 khz clock
-	.prescaler = 50, // Every 50 cycles gives 625 Hz
+	.clksrc = RCC_RTCCLKSource_LSI, // LSI is at 40kHz (30kHz - 60kHz according to the datasheet)
+	.prescaler = 64, // 40000 / 64 gives 625Hz (469Hz - 938Hz)
 	.irq = {
 		.init = {
 			.NVIC_IRQChannel                   = RTC_WKUP_IRQn,

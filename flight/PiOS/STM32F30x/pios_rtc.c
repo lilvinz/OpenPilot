@@ -53,20 +53,19 @@ void PIOS_RTC_Init(const struct pios_rtc_cfg * cfg)
 	RCC_BackupResetCmd(DISABLE);
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR, ENABLE);
 	PWR_BackupAccessCmd(ENABLE);
-	// Divide external 8 MHz clock to 1 MHz
+
 	RCC_RTCCLKConfig(cfg->clksrc);
 	RCC_RTCCLKCmd(ENABLE);
 
 	RTC_WakeUpCmd(DISABLE);
-	// Divide 1 Mhz clock by 16 -> 62.5 khz
-	RTC_WakeUpClockConfig(RTC_WakeUpClock_RTCCLK_Div16);
-	// Divide 62.5 khz by 200 to get 625 Hz
+	RTC_WakeUpClockConfig(cfg->clksrc == RCC_RTCCLKSource_LSI ? RTC_WakeUpClock_RTCCLK_Div1 : RTC_WakeUpClock_RTCCLK_Div16);
+
 	RTC_SetWakeUpCounter(cfg->prescaler); //cfg->prescaler);
 	RTC_WakeUpCmd(ENABLE);
 	
 	/* Configure and enable the RTC Second interrupt */
 	EXTI_InitTypeDef ExtiInit = {
-		.EXTI_Line = EXTI_Line22, // matches above GPIO pin
+		.EXTI_Line = EXTI_Line20, // matches above GPIO pin
 		.EXTI_Mode = EXTI_Mode_Interrupt,
 		.EXTI_Trigger = EXTI_Trigger_Rising,
 		.EXTI_LineCmd = ENABLE,
@@ -127,8 +126,8 @@ void PIOS_RTC_irq_handler (void)
 		RTC_ClearITPendingBit(RTC_IT_WUT);
 	}
 
-	if (EXTI_GetITStatus(EXTI_Line22) != RESET)
-		EXTI_ClearITPendingBit(EXTI_Line22);
+	if (EXTI_GetITStatus(EXTI_Line20) != RESET)
+		EXTI_ClearITPendingBit(EXTI_Line20);
 }
 #endif
 
