@@ -417,6 +417,7 @@ static int32_t updateSensorsCC3D(AccelsData * accelsData, GyrosData * gyrosData)
 	gyrosData->temperature = 35.0f + ((float) mpu6050_data.temperature + 512.0f) / 340.0f;
 	accelsData->temperature = 35.0f + ((float) mpu6050_data.temperature + 512.0f) / 340.0f;
 #elif defined(PIOS_INCLUDE_L3GD20)
+	//this one comes at 900HZ
 	struct pios_l3gd20_data gyro;
 	xQueueHandle gyro_queue = PIOS_L3GD20_GetQueue();
 
@@ -429,7 +430,29 @@ static int32_t updateSensorsCC3D(AccelsData * accelsData, GyrosData * gyrosData)
 
 	// Get temp from last reading
 	gyrosData->temperature = gyro.temperature;
+
+#if defined(PIOS_INCLUDE_LSM303)
+	//this one comes at 1344HZ, so downsample it
+	struct pios_lsm303_accel_data accel;
+	xQueueHandle accel_queue = PIOS_LSM303_GetQueue_Accel();
+
+	uint32_t samples = 0;
+	while (xQueueReceive(accel_queue, (void *) &accel, 0) != errQUEUE_EMPTY)
+	{
+		accels[0] += accel.accel_x * PIOS_LSM303_GetScale_Accel();
+		accels[1] += accel.accel_y * PIOS_LSM303_GetScale_Accel();
+		accels[2] += accel.accel_z * PIOS_LSM303_GetScale_Accel();
+	}
+	if (samples == 0)
+		return -1;	// Error, no data
+
+	accels[0] /= samples;
+	accels[1] /= samples;
+	accels[2] /= samples;
+
 #endif
+#endif
+
 	if(rotate) {
 		// TODO: rotate sensors too so stabilization is well behaved
 		float vec_out[3];

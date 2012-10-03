@@ -66,10 +66,10 @@ volatile bool lsm303_configured = false;
 static struct lsm303_dev * PIOS_LSM303_alloc(void);
 static int32_t PIOS_LSM303_Validate(struct lsm303_dev * dev);
 static void PIOS_LSM303_Config(struct pios_lsm303_cfg const * cfg);
-static int32_t PIOS_LSM303_Accel_SetReg(uint8_t address, uint8_t buffer);
-static int32_t PIOS_LSM303_Accel_GetReg(uint8_t address);
-static int32_t PIOS_LSM303_Mag_SetReg(uint8_t address, uint8_t buffer);
-static int32_t PIOS_LSM303_Mag_GetReg(uint8_t address);
+static int32_t PIOS_LSM303_SetReg_Accel(uint8_t address, uint8_t buffer);
+static int32_t PIOS_LSM303_GetReg_Accel(uint8_t address);
+static int32_t PIOS_LSM303_SetReg_Mag(uint8_t address, uint8_t buffer);
+static int32_t PIOS_LSM303_GetReg_Mag(uint8_t address);
 static void PIOS_LSM303_Task(void *parameters);
 
 #define GRAV 9.81f
@@ -129,7 +129,7 @@ int32_t PIOS_LSM303_Init(uint32_t i2c_id, const struct pios_lsm303_cfg * cfg)
 	dev->i2c_id = i2c_id;
 	switch (cfg->devicetype)
 	{
-	case LSM303DLHC_DEVICE:
+	case PIOS_LSM303DLHC_DEVICE:
 		dev->i2c_addr_accel = 0x19;
 		dev->i2c_addr_mag = 0x1e;
 		break;
@@ -150,6 +150,11 @@ int32_t PIOS_LSM303_Init(uint32_t i2c_id, const struct pios_lsm303_cfg * cfg)
 
 	/* Set up EXTI line */
 	PIOS_EXTI_Init(cfg->exti_cfg);
+
+	// An initial read is needed to get it running
+	struct pios_lsm303_accel_data data;
+	PIOS_LSM303_ReadData_Accel(&data);
+
 	return 0;
 }
 
@@ -161,7 +166,31 @@ int32_t PIOS_LSM303_Init(uint32_t i2c_id, const struct pios_lsm303_cfg * cfg)
 */
 static void PIOS_LSM303_Config(struct pios_lsm303_cfg const * cfg)
 {
-	
+	// Reset
+	while (PIOS_LSM303_SetReg_Accel(PIOS_LSM303_CTRL_REG5_A, PIOS_LSM303_CTRL5_BOOT) != 0);
+
+	// This register enables the channels and sets the bandwidth
+	while (PIOS_LSM303_SetReg_Accel(PIOS_LSM303_CTRL_REG1_A,
+		PIOS_LSM303_CTRL1_400HZ |
+		PIOS_LSM303_CTRL1_ZEN |
+		PIOS_L3GD20_CTRL1_YEN |
+		PIOS_L3GD20_CTRL1_XEN) != 0);
+
+	// Disable the high pass filters
+	while (PIOS_LSM303_SetReg_Accel(PIOS_LSM303_CTRL_REG2_A, 0) != 0);
+
+	// Set INT1 to go high on data ready
+	while (PIOS_LSM303_SetReg_Accel(PIOS_LSM303_CTRL_REG3_A, PIOS_LSM303_CTRL3_I1_DRDY1) != 0);
+
+	// set range
+	while (PIOS_LSM303_SetReg_Accel(PIOS_LSM303_CTRL_REG4_A, cfg->accel_range) != 0);
+
+	// Enable FIFO
+	while (PIOS_LSM303_SetReg_Accel(PIOS_LSM303_CTRL_REG5_A, PIOS_LSM303_CTRL5_FIFO_EN) != 0);
+
+	// Fifo stream mode
+	while (PIOS_LSM303_SetReg_Accel(PIOS_L3GD20_FIFO_CTRL_REG, PIOS_LSM303_FIFO_MODE_STREAM) != 0);
+
 	lsm303_configured = true;
 }
 
@@ -174,10 +203,10 @@ static void PIOS_LSM303_Config(struct pios_lsm303_cfg const * cfg)
  * \return -1 if error during I2C transfer
  * \return -2 if unable to claim i2c device
  */
-static int32_t PIOS_LSM303_Accel_Read(uint8_t address, uint8_t * buffer, uint8_t len)
+static int32_t PIOS_LSM303_Read_Accel(uint8_t address, uint8_t * buffer, uint8_t len)
 {
 	uint8_t addr_buffer[] = {
-		address,
+		len <= 1 ? address : (address | 0x80),
 	};
 
 	const struct pios_i2c_txn txn_list[] = {
@@ -208,7 +237,7 @@ static int32_t PIOS_LSM303_Accel_Read(uint8_t address, uint8_t * buffer, uint8_t
  * \return -1 if error during I2C transfer
  * \return -2 if unable to claim i2c device
  */
-static int32_t PIOS_LSM303_Accel_Write(uint8_t address, uint8_t buffer)
+static int32_t PIOS_LSM303_Write_Accel(uint8_t address, uint8_t buffer)
 {
 	uint8_t data[] = {
 		address,
@@ -229,15 +258,78 @@ static int32_t PIOS_LSM303_Accel_Write(uint8_t address, uint8_t buffer)
 }
 
 /**
+ * @brief Reads one or more bytes into a buffer
+ * \param[in] address HMC5883 register address (depends on size)
+ * \param[out] buffer destination buffer
+ * \param[in] len number of bytes which should be read
+ * \return 0 if operation was successful
+ * \return -1 if error during I2C transfer
+ * \return -2 if unable to claim i2c device
+ */
+static int32_t PIOS_LSM303_Read_Mag(uint8_t address, uint8_t * buffer, uint8_t len)
+{
+	uint8_t addr_buffer[] = {
+		len <= 1 ? address : (address | 0x80),
+	};
+
+	const struct pios_i2c_txn txn_list[] = {
+		{
+			.info = __func__,
+			.addr = dev->i2c_addr_mag,
+			.rw = PIOS_I2C_TXN_WRITE,
+			.len = sizeof(addr_buffer),
+			.buf = addr_buffer,
+		},
+		{
+			.info = __func__,
+			.addr = dev->i2c_addr_mag,
+			.rw = PIOS_I2C_TXN_READ,
+			.len = len,
+			.buf = buffer,
+		}
+	};
+
+	return PIOS_I2C_Transfer(dev->i2c_id, txn_list, NELEMENTS(txn_list));
+}
+
+/**
+ * @brief Writes one or more bytes to the HMC5883
+ * \param[in] address Register address
+ * \param[in] buffer source buffer
+ * \return 0 if operation was successful
+ * \return -1 if error during I2C transfer
+ * \return -2 if unable to claim i2c device
+ */
+static int32_t PIOS_LSM303_Write_Mag(uint8_t address, uint8_t buffer)
+{
+	uint8_t data[] = {
+		address,
+		buffer,
+	};
+
+	const struct pios_i2c_txn txn_list[] = {
+		{
+			.info = __func__,
+			.addr = dev->i2c_addr_mag,
+			.rw = PIOS_I2C_TXN_WRITE,
+			.len = sizeof(data),
+			.buf = data,
+		},
+	};
+
+	return PIOS_I2C_Transfer(dev->i2c_id, txn_list, NELEMENTS(txn_list));
+}
+
+/**
  * @brief Read a register from LSM303
  * @returns The register value or -1 if failure to get bus
  * @param reg[in] Register address to be read
  */
-static int32_t PIOS_LSM303_Accel_GetReg(uint8_t reg)
+static int32_t PIOS_LSM303_GetReg_Accel(uint8_t reg)
 {
 	uint8_t data;
 
-	int32_t retval = PIOS_LSM303_Accel_Read(reg, &data, sizeof(data));
+	int32_t retval = PIOS_LSM303_Read_Accel(reg, &data, sizeof(data));
 
 	if (retval != 0)
 		return retval;
@@ -253,29 +345,64 @@ static int32_t PIOS_LSM303_Accel_GetReg(uint8_t reg)
  * \return -1 if unable to claim SPI bus
  * \return -2 if unable to claim i2c device
  */
-static int32_t PIOS_LSM303_Accel_SetReg(uint8_t reg, uint8_t data)
+static int32_t PIOS_LSM303_SetReg_Accel(uint8_t reg, uint8_t data)
 {
-	return PIOS_LSM303_Accel_Write(reg, data);
+	return PIOS_LSM303_Write_Accel(reg, data);
 }
 
+/**
+ * @brief Read a register from LSM303
+ * @returns The register value or -1 if failure to get bus
+ * @param reg[in] Register address to be read
+ */
+static int32_t PIOS_LSM303_GetReg_Mag(uint8_t reg)
+{
+	uint8_t data;
+
+	int32_t retval = PIOS_LSM303_Read_Mag(reg, &data, sizeof(data));
+
+	if (retval != 0)
+		return retval;
+	else
+		return data;
+}
+
+/**
+ * @brief Writes one byte to the LSM303
+ * \param[in] reg Register address
+ * \param[in] data Byte to write
+ * \return 0 if operation was successful
+ * \return -1 if unable to claim SPI bus
+ * \return -2 if unable to claim i2c device
+ */
+static int32_t PIOS_LSM303_SetReg_Mag(uint8_t reg, uint8_t data)
+{
+	return PIOS_LSM303_Write_Mag(reg, data);
+}
 
 /**
  * @brief Read current X, Z, Y values (in that order)
- * \param[out] int16_t array of size 3 to store X, Z, and Y magnetometer readings
+ * \param[out] int16_t array of size 3 to store X, Z, and Y accelerometer readings
  * \returns The number of samples remaining in the fifo
  */
-int32_t PIOS_LSM303_ReadAccel(struct pios_lsm303_accel_data * data)
+int32_t PIOS_LSM303_ReadData_Accel(struct pios_lsm303_accel_data * data)
 {
-	uint8_t lsm303_rec_buf[6];
-	
-	if (PIOS_LSM303_Accel_Read(LSM303_OUT_X_H_M, lsm303_rec_buf, sizeof(lsm303_rec_buf)) < 0) {
+	if (PIOS_LSM303_Read_Accel(PIOS_LSM303_OUT_X_L_A, (uint8_t*)data, sizeof(*data)) < 0) {
 		return -2;
 	}
-	
-	data->accel_x = lsm303_rec_buf[0] << 8 | lsm303_rec_buf[1];
-	data->accel_y = lsm303_rec_buf[2] << 8 | lsm303_rec_buf[3];
-	data->accel_z = lsm303_rec_buf[4] << 8 | lsm303_rec_buf[5];
-	
+	return 0;
+}
+
+/**
+ * @brief Read current X, Z, Y values (in that order)
+ * \param[out] int16_t array of size 3 to store X, Y, Z and temperature magnetometer readings
+ * \returns The number of samples remaining in the fifo
+ */
+int32_t PIOS_LSM303_ReadData_Mag(struct pios_lsm303_mag_data * data)
+{
+	if (PIOS_LSM303_Read_Mag(PIOS_LSM303_OUT_X_H_M, (uint8_t*)data, sizeof(*data)) < 0) {
+		return -2;
+	}
 	return 0;
 }
 
@@ -301,10 +428,10 @@ xQueueHandle PIOS_LSM303_GetQueue_Accel()
 }
 
 
-float PIOS_LSM303_GetScale()
+float PIOS_LSM303_GetScale_Mag()
 {
 /* fixme:
-	switch (dev->cfg->gyro_range) {
+	switch (dev->cfg->mag_range) {
 		case PIOS_LSM303_SCALE_250_DEG:
 			return 1.0f / 131.0f;
 		case PIOS_LSM303_SCALE_500_DEG:
@@ -318,20 +445,18 @@ float PIOS_LSM303_GetScale()
 	return 0;
 }
 
-float PIOS_LSM303_GetAccelScale()
+float PIOS_LSM303_GetScale_Accel()
 {
-/* fixme:
 	switch (dev->cfg->accel_range) {
-		case PIOS_LSM303_ACCEL_2G:
+		case PIOS_LSM303_ACCEL_2_G:
 			return GRAV / 16384.0f;
-		case PIOS_LSM303_ACCEL_4G:
+		case PIOS_LSM303_ACCEL_4_G:
 			return GRAV / 8192.0f;
-		case PIOS_LSM303_ACCEL_8G:
+		case PIOS_LSM303_ACCEL_8_G:
 			return GRAV / 4096.0f;
-		case PIOS_LSM303_ACCEL_16G:
+		case PIOS_LSM303_ACCEL_16_G:
 			return GRAV / 2048.0f;
 	}
-*/
 	return 0;
 }
 
@@ -342,7 +467,8 @@ float PIOS_LSM303_GetAccelScale()
  */
 uint8_t PIOS_LSM303_Test(void)
 {
-	return 0;
+	struct pios_lsm303_accel_data data;
+	return PIOS_LSM303_ReadData_Accel(&data);
 }
 
 /**
@@ -368,18 +494,11 @@ void PIOS_LSM303_Task(void *parameters)
 		if (!lsm303_configured)
 			continue;
 	
-		static uint8_t lsm303_rec_buf[sizeof(struct pios_lsm303_accel_data)];
-		
-		if (PIOS_LSM303_Accel_Read(LSM303_OUT_X_H_M, lsm303_rec_buf, sizeof(lsm303_rec_buf)) < 0) {
-			continue;
-		}
-	
 		static struct pios_lsm303_accel_data data;
 
-
-		data.accel_x = lsm303_rec_buf[0] << 8 | lsm303_rec_buf[1];
-		data.accel_y = lsm303_rec_buf[2] << 8 | lsm303_rec_buf[3];
-		data.accel_z = lsm303_rec_buf[4] << 8 | lsm303_rec_buf[5];
+		if (PIOS_LSM303_ReadData_Accel(&data) < 0) {
+			continue;
+		}
 	
 		xQueueSend(dev->queue_accel, (void *) &data, 0);
 	}

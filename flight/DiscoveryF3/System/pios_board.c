@@ -213,7 +213,8 @@ static const struct pios_exti_cfg pios_exti_lsm303_cfg __exti_config = {
 
 static const struct pios_lsm303_cfg pios_lsm303_cfg = {
 	.exti_cfg = &pios_exti_lsm303_cfg,
-	.devicetype = LSM303DLHC_DEVICE,
+	.devicetype = PIOS_LSM303DLHC_DEVICE,
+	.accel_range = PIOS_LSM303_ACCEL_8_G,
 };
 #endif /* PIOS_INCLUDE_LSM303 */
 
@@ -585,11 +586,7 @@ void PIOS_Board_Init(void) {
 	}
 
 	PIOS_LSM303_Init(pios_i2c_accel_mag_id, &pios_lsm303_cfg);
-	{
-		uint8_t init_test;
-		init_test = PIOS_LSM303_Test();
-		++init_test;
-	}
+	PIOS_LSM303_Test();
 #endif /* PIOS_INCLUDE_LSM303 */
 
 
