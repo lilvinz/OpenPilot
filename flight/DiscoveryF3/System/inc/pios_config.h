@@ -49,21 +49,21 @@
 #define PIOS_INCLUDE_RCVR
 
 /* Supported receiver interfaces */
-//#define PIOS_INCLUDE_DSM			//depends on RTC
-//#define PIOS_INCLUDE_SBUS			//depends on RTC
-//#define PIOS_INCLUDE_PPM			//depends on RTC
-//#define PIOS_INCLUDE_PWM
-//#define PIOS_INCLUDE_GCSRCVR		//depends on RTC
+#define PIOS_INCLUDE_DSM			//depends on RTC
+#define PIOS_INCLUDE_SBUS			//depends on RTC
+#define PIOS_INCLUDE_PPM			//depends on RTC
+#define PIOS_INCLUDE_PWM
+#define PIOS_INCLUDE_GCSRCVR		//depends on RTC
 
 /* Supported USART-based PIOS modules */
-//#define PIOS_INCLUDE_TELEMETRY_RF
-//#define PIOS_INCLUDE_GPS
-#define PIOS_GPS_MINIMAL
+#define PIOS_INCLUDE_TELEMETRY_RF
+#define PIOS_INCLUDE_GPS
+//#define PIOS_GPS_MINIMAL
 
 //#define PIOS_INCLUDE_SERVO
 #define PIOS_INCLUDE_SPI
 #define PIOS_INCLUDE_SYS
-//#define PIOS_INCLUDE_USART
+#define PIOS_INCLUDE_USART
 #define PIOS_INCLUDE_USB
 #define PIOS_INCLUDE_USB_HID
 //#define PIOS_INCLUDE_USB_CDC
@@ -71,7 +71,7 @@
 #define PIOS_INCLUDE_SETTINGS
 //#define PIOS_INCLUDE_GPIO
 #define PIOS_INCLUDE_EXTI
-//#define PIOS_INCLUDE_RTC		//we have no clock source for it
+#define PIOS_INCLUDE_RTC
 #define PIOS_INCLUDE_WDG
 
 #define PIOS_INCLUDE_FLASH
