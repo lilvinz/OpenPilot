@@ -375,82 +375,114 @@ static int32_t updateSensorsCC3D(AccelsData * accelsData, GyrosData * gyrosData)
 	float accels[3], gyros[3];
 	
 #if defined(PIOS_INCLUDE_MPU6000)
-	static struct pios_mpu6000_data mpu6000_data;
-	xQueueHandle queue = PIOS_MPU6000_GetQueue();
-	
-	if(xQueueReceive(queue, (void *) &mpu6000_data, SENSOR_PERIOD) == errQUEUE_EMPTY)
-		return -1;	// Error, no data
-
-	// Do not read raw sensor data in simulation mode
-	if (GyrosReadOnly() || AccelsReadOnly())
-		return 0;
-
-	gyros[0] = -mpu6000_data.gyro_y * PIOS_MPU6000_GetScale();
-	gyros[1] = -mpu6000_data.gyro_x * PIOS_MPU6000_GetScale();
-	gyros[2] = -mpu6000_data.gyro_z * PIOS_MPU6000_GetScale();
-	
-	accels[0] = -mpu6000_data.accel_y * PIOS_MPU6000_GetAccelScale();
-	accels[1] = -mpu6000_data.accel_x * PIOS_MPU6000_GetAccelScale();
-	accels[2] = -mpu6000_data.accel_z * PIOS_MPU6000_GetAccelScale();
-
-	gyrosData->temperature = 35.0f + ((float) mpu6000_data.temperature + 512.0f) / 340.0f;
-	accelsData->temperature = 35.0f + ((float) mpu6000_data.temperature + 512.0f) / 340.0f;
-#elif defined(PIOS_INCLUDE_MPU6050)
-	static struct pios_mpu6050_data mpu6050_data;
-	xQueueHandle queue = PIOS_MPU6050_GetQueue();
-
-	if(xQueueReceive(queue, (void *) &mpu6050_data, SENSOR_PERIOD) == errQUEUE_EMPTY)
-		return -1;	// Error, no data
-
-	// Do not read raw sensor data in simulation mode
-	if (GyrosReadOnly() || AccelsReadOnly())
-		return 0;
-
-	gyros[0] = -mpu6050_data.gyro_y * PIOS_MPU6050_GetScale();
-	gyros[1] = -mpu6050_data.gyro_x * PIOS_MPU6050_GetScale();
-	gyros[2] = -mpu6050_data.gyro_z * PIOS_MPU6050_GetScale();
-
-	accels[0] = -mpu6050_data.accel_y * PIOS_MPU6050_GetAccelScale();
-	accels[1] = -mpu6050_data.accel_x * PIOS_MPU6050_GetAccelScale();
-	accels[2] = -mpu6050_data.accel_z * PIOS_MPU6050_GetAccelScale();
-
-	gyrosData->temperature = 35.0f + ((float) mpu6050_data.temperature + 512.0f) / 340.0f;
-	accelsData->temperature = 35.0f + ((float) mpu6050_data.temperature + 512.0f) / 340.0f;
-#elif defined(PIOS_INCLUDE_L3GD20)
-	//this one comes at 900HZ
-	struct pios_l3gd20_data gyro;
-	xQueueHandle gyro_queue = PIOS_L3GD20_GetQueue();
-
-	if(xQueueReceive(gyro_queue, (void *) &gyro, 4) == errQUEUE_EMPTY)
-		return -1;	// Error, no data
-
-	gyros[0] = gyro.gyro_x * PIOS_L3GD20_GetScale();
-	gyros[1] = gyro.gyro_y * PIOS_L3GD20_GetScale();
-	gyros[2] = gyro.gyro_z * PIOS_L3GD20_GetScale();
-
-	// Get temp from last reading
-	gyrosData->temperature = gyro.temperature;
-
-#if defined(PIOS_INCLUDE_LSM303)
-	//this one comes at 1344HZ, so downsample it
-	struct pios_lsm303_accel_data accel;
-	xQueueHandle accel_queue = PIOS_LSM303_GetQueue_Accel();
-
-	uint32_t samples = 0;
-	while (xQueueReceive(accel_queue, (void *) &accel, 0) != errQUEUE_EMPTY)
 	{
-		accels[0] += accel.accel_x * PIOS_LSM303_GetScale_Accel();
-		accels[1] += accel.accel_y * PIOS_LSM303_GetScale_Accel();
-		accels[2] += accel.accel_z * PIOS_LSM303_GetScale_Accel();
+		static struct pios_mpu6000_data mpu6000_data;
+		xQueueHandle queue = PIOS_MPU6000_GetQueue();
+
+		if(xQueueReceive(queue, (void *) &mpu6000_data, SENSOR_PERIOD) == errQUEUE_EMPTY)
+			return -1;	// Error, no data
+
+		// Do not read raw sensor data in simulation mode
+		if (GyrosReadOnly() || AccelsReadOnly())
+			return 0;
+
+		gyros[0] = -mpu6000_data.gyro_y * PIOS_MPU6000_GetScale();
+		gyros[1] = -mpu6000_data.gyro_x * PIOS_MPU6000_GetScale();
+		gyros[2] = -mpu6000_data.gyro_z * PIOS_MPU6000_GetScale();
+
+		accels[0] = -mpu6000_data.accel_y * PIOS_MPU6000_GetAccelScale();
+		accels[1] = -mpu6000_data.accel_x * PIOS_MPU6000_GetAccelScale();
+		accels[2] = -mpu6000_data.accel_z * PIOS_MPU6000_GetAccelScale();
+	
+		gyrosData->temperature = 35.0f + ((float) mpu6000_data.temperature + 512.0f) / 340.0f;
+		accelsData->temperature = 35.0f + ((float) mpu6000_data.temperature + 512.0f) / 340.0f;
 	}
-	if (samples == 0)
-		return -1;	// Error, no data
+	
+#elif defined(PIOS_INCLUDE_MPU6050)
+	{
+		static struct pios_mpu6050_data mpu6050_data;
+		xQueueHandle queue = PIOS_MPU6050_GetQueue();
 
-	accels[0] /= samples;
-	accels[1] /= samples;
-	accels[2] /= samples;
+		if(xQueueReceive(queue, (void *) &mpu6050_data, SENSOR_PERIOD) == errQUEUE_EMPTY)
+			return -1;	// Error, no data
 
-#endif
+		// Do not read raw sensor data in simulation mode
+		if (GyrosReadOnly() || AccelsReadOnly())
+			return 0;
+
+		gyros[0] = -mpu6050_data.gyro_y * PIOS_MPU6050_GetScale();
+		gyros[1] = -mpu6050_data.gyro_x * PIOS_MPU6050_GetScale();
+		gyros[2] = -mpu6050_data.gyro_z * PIOS_MPU6050_GetScale();
+
+		accels[0] = -mpu6050_data.accel_y * PIOS_MPU6050_GetAccelScale();
+		accels[1] = -mpu6050_data.accel_x * PIOS_MPU6050_GetAccelScale();
+		accels[2] = -mpu6050_data.accel_z * PIOS_MPU6050_GetAccelScale();
+
+		gyrosData->temperature = 35.0f + ((float) mpu6050_data.temperature + 512.0f) / 340.0f;
+		accelsData->temperature = 35.0f + ((float) mpu6050_data.temperature + 512.0f) / 340.0f;
+	}
+
+#elif defined(PIOS_INCLUDE_L3GD20) && defined(PIOS_INCLUDE_LSM303)
+	{
+		//this one comes at 400HZ
+		struct pios_lsm303_accel_data accel;
+		xQueueHandle accel_queue = PIOS_LSM303_GetQueue_Accel();
+
+		uint32_t samples = 0;
+		while (
+			samples == 0 ? (xQueueReceive(accel_queue, (void *) &accel, SENSOR_PERIOD) != errQUEUE_EMPTY) :
+				(xQueueReceive(accel_queue, (void *) &accel, 0) != errQUEUE_EMPTY)
+			)
+		{
+			accels[0] += accel.accel_x * PIOS_LSM303_GetScale_Accel();
+			accels[1] += accel.accel_y * PIOS_LSM303_GetScale_Accel();
+			accels[2] += accel.accel_z * PIOS_LSM303_GetScale_Accel();
+			++samples;
+		}
+		if (samples == 0)
+		{
+			// Unfortunately if the LSM303 ever misses getting read, then it will not
+			// trigger more interrupts.  In this case we must force a read to kickstart
+			// it.
+			struct pios_lsm303_accel_data data;
+			PIOS_LSM303_ReadData_Accel(&data);
+			return -1;	// Error, no data
+		}
+
+		accels[0] /= samples;
+		accels[1] /= samples;
+		accels[2] /= samples;
+	}
+	{
+		//this one comes at 760HZ
+		struct pios_l3gd20_data gyro;
+		xQueueHandle gyro_queue = PIOS_L3GD20_GetQueue();
+
+		uint32_t samples = 0;
+		while (xQueueReceive(gyro_queue, (void *) &gyro, 0) != errQUEUE_EMPTY)
+		{
+			gyros[0] += gyro.gyro_x * PIOS_L3GD20_GetScale();
+			gyros[1] += gyro.gyro_y * PIOS_L3GD20_GetScale();
+			gyros[2] += gyro.gyro_z * PIOS_L3GD20_GetScale();
+			++samples;
+		}
+		if (samples == 0)
+		{
+			// Unfortunately if the L3GD20 ever misses getting read, then it will not
+			// trigger more interrupts.  In this case we must force a read to kickstart
+			// it.
+			struct pios_l3gd20_data data;
+			PIOS_L3GD20_ReadGyros(&data);
+			return -1;	// Error, no data
+		}
+
+		gyros[0] /= samples;
+		gyros[1] /= samples;
+		gyros[2] /= samples;
+
+		// Get temp from last reading
+		gyrosData->temperature = gyro.temperature;
+	}
 #endif
 
 	if(rotate) {
