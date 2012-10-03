@@ -54,13 +54,33 @@ void PIOS_RTC_Init(const struct pios_rtc_cfg * cfg)
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR, ENABLE);
 	PWR_BackupAccessCmd(ENABLE);
 
+	if (cfg->clksrc == RCC_RTCCLKSource_LSI)
+	{
+		/* Enable the LSI OSC */
+		RCC_LSICmd(ENABLE);
+
+		/* Wait till LSI is ready */
+		while(RCC_GetFlagStatus(RCC_FLAG_LSIRDY) == RESET)
+		{
+		}
+	}
+	else if (cfg->clksrc == RCC_RTCCLKSource_LSE)
+	{
+		/* Enable the LSE OSC */
+		RCC_LSEConfig(RCC_LSE_ON);
+
+		/* Wait till LSE is ready */
+		while(RCC_GetFlagStatus(RCC_FLAG_LSERDY) == RESET)
+		{
+		}
+	}
+
 	RCC_RTCCLKConfig(cfg->clksrc);
 	RCC_RTCCLKCmd(ENABLE);
 
 	RTC_WakeUpCmd(DISABLE);
-	RTC_WakeUpClockConfig(cfg->clksrc == RCC_RTCCLKSource_LSI ? RTC_WakeUpClock_RTCCLK_Div1 : RTC_WakeUpClock_RTCCLK_Div16);
-
-	RTC_SetWakeUpCounter(cfg->prescaler); //cfg->prescaler);
+	RTC_WakeUpClockConfig((cfg->clksrc == RCC_RTCCLKSource_LSI || cfg->clksrc == RCC_RTCCLKSource_LSE) ? RTC_WakeUpClock_RTCCLK_Div2 : RTC_WakeUpClock_RTCCLK_Div16);
+	RTC_SetWakeUpCounter(cfg->prescaler);
 	RTC_WakeUpCmd(ENABLE);
 	
 	/* Configure and enable the RTC Second interrupt */
