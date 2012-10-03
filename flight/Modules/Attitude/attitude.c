@@ -429,14 +429,16 @@ static int32_t updateSensorsCC3D(AccelsData * accelsData, GyrosData * gyrosData)
 		xQueueHandle accel_queue = PIOS_LSM303_GetQueue_Accel();
 
 		uint32_t samples = 0;
+		memset(accels, 0, sizeof(accels));
 		while (
 			samples == 0 ? (xQueueReceive(accel_queue, (void *) &accel, SENSOR_PERIOD) != errQUEUE_EMPTY) :
 				(xQueueReceive(accel_queue, (void *) &accel, 0) != errQUEUE_EMPTY)
 			)
 		{
-			accels[0] += accel.accel_x * PIOS_LSM303_GetScale_Accel();
+			//add up samples and adjust directions to match mpu-6000
+			accels[0] += -accel.accel_x * PIOS_LSM303_GetScale_Accel();
 			accels[1] += accel.accel_y * PIOS_LSM303_GetScale_Accel();
-			accels[2] += accel.accel_z * PIOS_LSM303_GetScale_Accel();
+			accels[2] += -accel.accel_z * PIOS_LSM303_GetScale_Accel();
 			++samples;
 		}
 		if (samples == 0)
@@ -452,6 +454,9 @@ static int32_t updateSensorsCC3D(AccelsData * accelsData, GyrosData * gyrosData)
 		accels[0] /= samples;
 		accels[1] /= samples;
 		accels[2] /= samples;
+
+		// No temp
+		gyrosData->temperature = 0;
 	}
 	{
 		//this one comes at 760HZ
@@ -459,11 +464,13 @@ static int32_t updateSensorsCC3D(AccelsData * accelsData, GyrosData * gyrosData)
 		xQueueHandle gyro_queue = PIOS_L3GD20_GetQueue();
 
 		uint32_t samples = 0;
+		memset(gyros, 0, sizeof(gyros));
 		while (xQueueReceive(gyro_queue, (void *) &gyro, 0) != errQUEUE_EMPTY)
 		{
-			gyros[0] += gyro.gyro_x * PIOS_L3GD20_GetScale();
-			gyros[1] += gyro.gyro_y * PIOS_L3GD20_GetScale();
-			gyros[2] += gyro.gyro_z * PIOS_L3GD20_GetScale();
+			//add up samples and adjust directions to match mpu-6000
+			gyros[0] += gyro.gyro_y * PIOS_L3GD20_GetScale();
+			gyros[1] += gyro.gyro_x * PIOS_L3GD20_GetScale();
+			gyros[2] += -gyro.gyro_z * PIOS_L3GD20_GetScale();
 			++samples;
 		}
 		if (samples == 0)
@@ -501,7 +508,6 @@ static int32_t updateSensorsCC3D(AccelsData * accelsData, GyrosData * gyrosData)
 	accelsData->x = accels[0] - accelbias[0] * ACCEL_SCALE; // Applying arbitrary scale here to match CC v1
 	accelsData->y = accels[1] - accelbias[1] * ACCEL_SCALE;
 	accelsData->z = accels[2] - accelbias[2] * ACCEL_SCALE;
-	AccelsSet(&accelsData);
 
 	gyrosData->x = gyros[0];
 	gyrosData->y = gyros[1];
