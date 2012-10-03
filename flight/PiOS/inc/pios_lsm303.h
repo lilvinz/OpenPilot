@@ -68,7 +68,7 @@
 #define PIOS_LSM303_CLICK_CFG_A			0x38 // DLHC only
 #define PIOS_LSM303_CLICK_SRC_A			0x39 // DLHC only
 #define PIOS_LSM303_CLICK_THS_A			0x3A // DLHC only
-#define PIOS_LSM303_TIME_LIMIT_A			0x3B // DLHC only
+#define PIOS_LSM303_TIME_LIMIT_A		0x3B // DLHC only
 #define PIOS_LSM303_TIME_LATENCY_A		0x3C // DLHC only
 #define PIOS_LSM303_TIME_WINDOW_A		0x3D // DLHC only
 
@@ -78,11 +78,10 @@
 
 #define PIOS_LSM303_OUT_X_H_M			0x03
 #define PIOS_LSM303_OUT_X_L_M			0x04
-#define PIOS_LSM303_OUT_Y_H_M			-1 // The addresses of the Y and Z magnetometer output registers
-#define PIOS_LSM303_OUT_Y_L_M			-2 // are reversed on the DLM and DLHC relative to the DLH.
-#define PIOS_LSM303_OUT_Z_H_M			-3 // These four defines have dummy values so the library can
-#define PIOS_LSM303_OUT_Z_L_M			-4 // determine the correct address based on the device type.
-
+#define PIOS_LSM303_OUT_Y_H_M			0x05	// Attention: the addresses of the Y and Z magnetometer output registers
+#define PIOS_LSM303_OUT_Y_L_M			0x06	// are reversed on the DLM and DLHC relative to the DLH.
+#define PIOS_LSM303_OUT_Z_H_M			0x07
+#define PIOS_LSM303_OUT_Z_L_M			0x08
 #define PIOS_LSM303_SR_REG_M			0x09
 #define PIOS_LSM303_IRA_REG_M			0x0A
 #define PIOS_LSM303_IRB_REG_M			0x0B
@@ -206,12 +205,13 @@ struct pios_lsm303_cfg {
 /* Public Functions */
 extern int32_t PIOS_LSM303_Init(uint32_t i2c_id, const struct pios_lsm303_cfg * new_cfg);
 extern xQueueHandle PIOS_LSM303_GetQueue_Accel();
+extern xQueueHandle PIOS_LSM303_GetQueue_Mag();	//mag not implemented yet
 extern int32_t PIOS_LSM303_ReadData_Accel(struct pios_lsm303_accel_data * buffer);
-extern int32_t PIOS_LSM303_ReadData_Mag(struct pios_lsm303_mag_data * buffer);
+extern int32_t PIOS_LSM303_ReadData_Mag(struct pios_lsm303_mag_data * buffer);	//mag not implemented yet
 extern int32_t PIOS_LSM303_ReadID();
 extern uint8_t PIOS_LSM303_Test();
 extern float PIOS_LSM303_GetScale_Accel();
-extern float PIOS_LSM303_GetScale_Mag();
+extern float PIOS_LSM303_GetScale_Mag();	//mag not implemented yet
 extern bool PIOS_LSM303_IRQHandler(void);
 
 #endif /* PIOS_PIOS_LSM303_H */

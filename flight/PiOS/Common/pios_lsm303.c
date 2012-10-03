@@ -36,7 +36,7 @@
 
 /* Private constants */
 #define LSM303_TASK_PRIORITY	(tskIDLE_PRIORITY + configMAX_PRIORITIES - 1)	// max priority
-#define LSM303_TASK_STACK		(384 / 4)
+#define LSM303_TASK_STACK		(288 / 4)
 
 #include "fifo_buffer.h"
 
@@ -494,7 +494,7 @@ void PIOS_LSM303_Task(void *parameters)
 		if (!lsm303_configured)
 			continue;
 	
-		static struct pios_lsm303_accel_data data;
+		struct pios_lsm303_accel_data data;
 
 		if (PIOS_LSM303_ReadData_Accel(&data) < 0) {
 			continue;
