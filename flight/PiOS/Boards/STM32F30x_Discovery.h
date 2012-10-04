@@ -115,8 +115,6 @@ TIM8  |           |           |           |
 // See also pios_board.c
 //------------------------
 #define PIOS_I2C_MAX_DEVS			1
-extern uint32_t pios_i2c_gyro_accel_adapter_id;
-#define PIOS_I2C_MPU6050_ADAPTER		(pios_i2c_gyro_accel_adapter_id)
 
 
 //-------------------------
@@ -221,7 +219,7 @@ extern uint32_t pios_com_telem_usb_id;
 // Receiver PWM input
 //-------------------------
 #define PIOS_PWM_MAX_DEVS			1
-#define PIOS_PWM_NUM_INPUTS         8
+#define PIOS_PWM_NUM_INPUTS         10
 
 //-------------------------
 // Receiver DSM input
@@ -244,7 +242,7 @@ extern uint32_t pios_com_telem_usb_id;
 //--------------------------
 // Timer controller settings
 //--------------------------
-#define PIOS_TIM_MAX_DEVS			6
+#define PIOS_TIM_MAX_DEVS			8
 
 //-------------------------
 // ADC

@@ -283,12 +283,15 @@ void PIOS_Board_Init(void) {
 
 	/* Set up pulse timers */
 	//inputs
+	PIOS_TIM_InitClock(&tim_1_cfg);
 	PIOS_TIM_InitClock(&tim_2_cfg);
+	PIOS_TIM_InitClock(&tim_3_cfg);
+	PIOS_TIM_InitClock(&tim_16_cfg);
+	//outputs
 	PIOS_TIM_InitClock(&tim_4_cfg);
 	PIOS_TIM_InitClock(&tim_8_cfg);
-	//outputs
-	PIOS_TIM_InitClock(&tim_1_cfg);
-	PIOS_TIM_InitClock(&tim_3_cfg);
+	PIOS_TIM_InitClock(&tim_15_cfg);
+	PIOS_TIM_InitClock(&tim_17_cfg);
 
 	/* Check for repeated boot failures */
 	PIOS_IAP_Init();
