@@ -63,11 +63,7 @@ uint8_t PIOS_BL_HELPER_FLASH_Start()
 
 		}
 
-#ifdef STM32F10X_HD
 		pageAdress += 2048;
-#elif defined (STM32F10X_MD)
-		pageAdress += 1024;
-#endif
 	}
 
 	return (fail == TRUE) ? 0 : 1;
