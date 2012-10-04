@@ -309,6 +309,7 @@ void processComand(uint8_t *xReceive_Buffer) {
 	case Abort_Operation:
 		Next_Packet = 0;
 		DeviceState = DFUidle;
+		JumpToApp = 0;
 		break;
 
 	case Op_END:
