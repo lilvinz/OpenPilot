@@ -218,7 +218,7 @@ static const struct pios_lsm303_cfg pios_lsm303_cfg = {
 };
 #endif /* PIOS_INCLUDE_LSM303 */
 
-/*
+#if defined(PIOS_INCLUDE_FLASH)
 static const struct flashfs_cfg flashfs_m25p_cfg = {
 	.table_magic = 0x85FB3D35,
 	.obj_magic = 0x3015A371,
@@ -232,7 +232,20 @@ static const struct pios_flash_jedec_cfg flash_m25p_cfg = {
 	.sector_erase = 0xD8,
 	.chip_erase = 0xC7
 };
-*/
+#elif defined(PIOS_INCLUDE_FLASH_INTERNAL)
+static const struct flashfs_compact_cfg flashfs_cfg = {
+	.chip_begin = 0x08004000,			//right after the bootloader (16kb)
+	.chip_size = 0x00004000,			//right before the main firmware (32kb)
+	.sector_size = 0x00000800,			//always 2048 for STM32F30X
+	.obj_table_start = 0x08004010,		//leave some room for the table magic
+	.obj_table_end = 0x08004800,		//right after the first sector
+	.table_magic = 0x854a1ab0,
+	.obj_magic = 0x170fbc23,
+};
+
+static const struct pios_flash_internal_cfg flash_cfg = {
+};
+#endif
 
 #include <pios_board_info.h>
 /**
@@ -250,11 +263,14 @@ void PIOS_Board_Init(void) {
 #endif	/* PIOS_INCLUDE_LED */
 	
 #if defined(PIOS_INCLUDE_FLASH)
-/*	if (PIOS_SPI_Init(&pios_spi_flash_id, &pios_spi_flash_cfg)) {
+	if (PIOS_SPI_Init(&pios_spi_flash_id, &pios_spi_flash_cfg)) {
 		PIOS_Assert(0);
 	}
-	PIOS_Flash_Jedec_Init(pios_spi_flash_id, 0, &flash_m25p_cfg);	
-	PIOS_FLASHFS_Init(&flashfs_m25p_cfg);*/
+	PIOS_Flash_Jedec_Init(pios_spi_flash_id, 0, &flash_m25p_cfg);
+	PIOS_FLASHFS_Init(&flashfs_m25p_cfg);
+#elif defined (PIOS_INCLUDE_FLASH_INTERNAL)
+	PIOS_Flash_Internal_Init(&flash_cfg);
+	PIOS_FLASHFS_Compact_Init(&flashfs_cfg);
 #endif
 	
 	/* Initialize UAVObject libraries */
