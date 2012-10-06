@@ -235,7 +235,6 @@ static uint32_t PIOS_FLASHFS_Compact_GetFileSize(UAVObjHandle objId)
  * @retval -4 FS not initialized
  * @retval -5
  */
-int32_t PIOS_FLASHFS_Compact_GetNewAddress(uint32_t objId, uint16_t instId) __attribute((optimize(0)));
 int32_t PIOS_FLASHFS_Compact_GetNewAddress(uint32_t objId, uint16_t instId)
 {
 	struct objectHeader new_header;
@@ -309,7 +308,6 @@ int32_t PIOS_FLASHFS_Compact_GetNewAddress(uint32_t objId, uint16_t instId)
  * @note This uses one sector on the flash chip per object so that no buffering in ram
  * must be done when erasing the sector before a save
  */
-int32_t PIOS_FLASHFS_Compact_ObjSave(UAVObjHandle obj, uint16_t instId, uint8_t * data) __attribute((optimize(0)));
 int32_t PIOS_FLASHFS_Compact_ObjSave(UAVObjHandle obj, uint16_t instId, uint8_t * data)
 {
 	uint32_t objId = UAVObjGetID(obj);
@@ -440,7 +438,6 @@ int32_t PIOS_FLASHFS_Compact_ObjSave(UAVObjHandle obj, uint16_t instId, uint8_t 
  * @note This uses one sector on the flash chip per object so that no buffering in ram
  * must be done when erasing the sector before a save
  */
-int32_t PIOS_FLASHFS_Compact_ObjLoad(UAVObjHandle obj, uint16_t instId, uint8_t * data) __attribute((optimize(0)));
 int32_t PIOS_FLASHFS_Compact_ObjLoad(UAVObjHandle obj, uint16_t instId, uint8_t * data)
 {
 	uint32_t objId = UAVObjGetID(obj);
