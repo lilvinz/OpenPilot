@@ -111,10 +111,11 @@ void PIOS_Servo_SetHz(uint16_t * speeds, uint8_t banks)
 		if(new) {
 			// Choose the correct prescaler value for the APB the timer is attached
 			if (chan->timer==TIM2 || chan->timer==TIM3 || chan->timer==TIM4 || chan->timer==TIM6 || chan->timer==TIM7 ){
-				TIM_TimeBaseStructure.TIM_Prescaler = (PIOS_PERIPHERAL_APB2_CLOCK / 1000000) - 1;
+				//those timers run at double APB1 speed if APB1 prescaler is != 1 which is usually the case
+				TIM_TimeBaseStructure.TIM_Prescaler = (PIOS_PERIPHERAL_APB1_CLOCK / 1000000 * 2) - 1;
 			}
 			else {
-				TIM_TimeBaseStructure.TIM_Prescaler = (PIOS_PERIPHERAL_APB1_CLOCK / 1000000) - 1;
+				TIM_TimeBaseStructure.TIM_Prescaler = (PIOS_PERIPHERAL_APB2_CLOCK / 1000000) - 1;
 			}
 
 			TIM_TimeBaseStructure.TIM_Period = ((1000000 / speeds[set]) - 1);
