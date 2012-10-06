@@ -271,7 +271,7 @@ CFLAGS += -DDIAG_TASKS
 # This is not the best place for these.  Really should abstract out
 # to the board file or something
 CFLAGS += -DSTM32F30X
-CFLAGS += -DMEM_SIZE=262144
+CFLAGS += -DMEM_SIZE=$(FW_BANK_SIZE)
 
 ifeq ($(ERASE_FLASH), YES)
 CDEFS += -DERASE_FLASH
