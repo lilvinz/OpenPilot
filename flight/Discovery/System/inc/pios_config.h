@@ -74,12 +74,15 @@
 #define PIOS_INCLUDE_RTC
 #define PIOS_INCLUDE_WDG
 
-#define PIOS_INCLUDE_FLASH
 #define PIOS_INCLUDE_MPU6050
 #define PIOS_MPU6050_ACCEL
 
 /* A really shitty setting saving implementation */
+#define PIOS_INCLUDE_FLASH
 #define PIOS_INCLUDE_FLASH_SECTOR_SETTINGS
+
+//#define PIOS_INCLUDE_FLASH_INTERNAL
+//#define PIOS_INCLUDE_FLASH_COMPACT_SETTINGS
 
 /* Other Interfaces */
 //#define PIOS_INCLUDE_I2C_ESC

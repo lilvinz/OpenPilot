@@ -17,7 +17,7 @@ OPENOCD_CONFIG      := stm32f4xx.stlink.cfg
 BL_BANK_BASE        := 0x08000000  # Start of bootloader flash
 BL_BANK_SIZE        := 0x00008000  # Should include BD_INFO region (32kb)
 
-# Leave the remaining 32KB and 64KB sectors for other uses
+# Leave the remaining 16KB and 64KB sectors for other uses
 FW_BANK_BASE        := 0x08020000  # Start of firmware flash (128kb)
 FW_BANK_SIZE        := 0x00040000  # Should include FW_DESC_SIZE (256kb)
 

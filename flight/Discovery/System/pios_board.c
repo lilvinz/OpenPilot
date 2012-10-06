@@ -182,6 +182,7 @@ static const struct pios_mpu6050_cfg pios_mpu6050_cfg = {
 };
 #endif /* PIOS_INCLUDE_MPU6050 */
 
+#if defined(PIOS_INCLUDE_FLASH)
 static const struct flashfs_cfg flashfs_m25p_cfg = {
 	.table_magic = 0x85FB3D35,
 	.obj_magic = 0x3015A371,
@@ -195,6 +196,22 @@ static const struct pios_flash_jedec_cfg flash_m25p_cfg = {
 	.sector_erase = 0xD8,
 	.chip_erase = 0xC7
 };
+#elif defined(PIOS_INCLUDE_FLASH_INTERNAL)
+static const struct flashfs_compact_cfg flashfs_cfg = {
+	.addr_chip_begin = 0x08008000,			//right after the bootloader (32kb)
+	.addr_scratchpad = 0x08008000,			//one empty sector which is being used as a scratchpad
+	.addr_obj_table_magic = 0x0800c000,
+	.addr_obj_table_start = 0x0800c010,		//leave some room for the table magic
+	.addr_obj_table_end = 0x08010000,		//right after the first sector - this tables takes 1024 entries with 16 bytes each
+	.chip_size = 0x00010000,				//right before the main firmware (128kb)
+	.sector_size = 0x00004000,				//16kb in this case
+	.table_magic = 0x854a1ab0,
+	.obj_magic = 0x170fbc23,
+};
+
+static const struct pios_flash_internal_cfg flash_cfg = {
+};
+#endif
 
 #include <pios_board_info.h>
 /**
@@ -212,12 +229,15 @@ void PIOS_Board_Init(void) {
 #endif	/* PIOS_INCLUDE_LED */
 	
 
-#if defined(PIOS_INCLUDE_SPI) && defined(PIOS_INCLUDE_FLASH)
+#if defined(PIOS_INCLUDE_FLASH)
 	if (PIOS_SPI_Init(&pios_spi_flash_id, &pios_spi_flash_cfg)) {
 		PIOS_Assert(0);
 	}
-	PIOS_Flash_Jedec_Init(pios_spi_flash_id, 0, &flash_m25p_cfg);	
+	PIOS_Flash_Jedec_Init(pios_spi_flash_id, 0, &flash_m25p_cfg);
 	PIOS_FLASHFS_Init(&flashfs_m25p_cfg);
+#elif defined (PIOS_INCLUDE_FLASH_INTERNAL)
+	PIOS_Flash_Internal_Init(&flash_cfg);
+	PIOS_FLASHFS_Compact_Init(&flashfs_cfg);
 #endif
 	
 	/* Initialize UAVObject libraries */
@@ -271,12 +291,8 @@ void PIOS_Board_Init(void) {
 	PIOS_USB_BOARD_DATA_Init();
 
 	/* Flags to determine if various USB interfaces are advertised */
-#if defined(PIOS_INCLUDE_USB_HID)
 	bool usb_hid_present = false;
-#endif
-#if defined(PIOS_INCLUDE_USB_CDC)
 	bool usb_cdc_present = false;
-#endif
 
 	if (PIOS_USB_DESC_HID_ONLY_Init()) {
 		PIOS_Assert(0);
@@ -533,7 +549,7 @@ void PIOS_Board_Init(void) {
 		case HWSETTINGS_RV_RCVRPORT_OUTPUTS:
 			//PIOS_Servo_Init(&pios_servo_rcvr_cfg);
 			//TODO: Prepare the configurations on board_hw_defs and handle here:
-#ifdef
+#ifdef PIOS_INCLUDE_SERVO
 			PIOS_Servo_Init(&pios_servo_cfg);
 #endif
 			break;
