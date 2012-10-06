@@ -271,8 +271,12 @@ void PIOS_Board_Init(void) {
 	PIOS_USB_BOARD_DATA_Init();
 
 	/* Flags to determine if various USB interfaces are advertised */
+#if defined(PIOS_INCLUDE_USB_HID)
 	bool usb_hid_present = false;
+#endif
+#if defined(PIOS_INCLUDE_USB_CDC)
 	bool usb_cdc_present = false;
+#endif
 
 	if (PIOS_USB_DESC_HID_ONLY_Init()) {
 		PIOS_Assert(0);
