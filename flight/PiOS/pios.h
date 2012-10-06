@@ -149,6 +149,9 @@
 #if defined(PIOS_INCLUDE_FLASH)
 #include <pios_flash_jedec.h>
 #include <pios_flashfs_objlist.h>
+#elif defined(PIOS_INCLUDE_FLASH_INTERNAL)
+#include <pios_flash_internal.h>
+#include <pios_flashfs_compact.h>
 #endif
 
 #if defined(PIOS_INCLUDE_BL_HELPER)

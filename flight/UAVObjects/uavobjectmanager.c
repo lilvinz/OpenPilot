@@ -586,6 +586,22 @@ int32_t UAVObjSave(UAVObjHandle obj, uint16_t instId)
 
 	  if (PIOS_FLASHFS_ObjSave(obj, instId, instEntry->data) != 0)
 		    return -1;
+#elif defined(PIOS_INCLUDE_FLASH_COMPACT_SETTINGS)
+	  ObjectList *objEntry = (ObjectList *) obj;
+
+	  if (objEntry == NULL)
+		    return -1;
+
+	  ObjectInstList *instEntry = getInstance(objEntry, instId);
+
+	  if (instEntry == NULL)
+		    return -1;
+
+	  if (instEntry->data == NULL)
+		    return -1;
+
+	  if (PIOS_FLASHFS_Compact_ObjSave(obj, instId, instEntry->data) != 0)
+		    return -1;
 #endif
 #if defined(PIOS_INCLUDE_SDCARD)
 	  FILEINFO file;
@@ -726,6 +742,26 @@ int32_t UAVObjLoad(UAVObjHandle obj, uint16_t instId)
 		sendEvent(objEntry, instId, EV_UNPACKED);
 	else
 		return retval;
+#elif defined(PIOS_INCLUDE_FLASH_COMPACT_SETTINGS)
+	ObjectList *objEntry = (ObjectList *) obj;
+
+	if (objEntry == NULL)
+		return -1;
+
+	ObjectInstList *instEntry = getInstance(objEntry, instId);
+
+	if (instEntry == NULL)
+		return -1;
+
+	if (instEntry->data == NULL)
+		return -1;
+
+	// Fire event on success
+	int32_t retval;
+	if ((retval = PIOS_FLASHFS_Compact_ObjLoad(obj, instId, instEntry->data)) == 0)
+		sendEvent(objEntry, instId, EV_UNPACKED);
+	else
+		return retval;
 #endif
 
 #if defined(PIOS_INCLUDE_SDCARD)
@@ -784,6 +820,8 @@ int32_t UAVObjDelete(UAVObjHandle obj, uint16_t instId)
 {
 #if defined(PIOS_INCLUDE_FLASH_SECTOR_SETTINGS)
 	  PIOS_FLASHFS_ObjDelete(obj, instId);
+#elif defined(PIOS_INCLUDE_FLASH_COMPACT_SETTINGS)
+	  PIOS_FLASHFS_Compact_ObjDelete(obj, instId);
 #endif
 #if defined(PIOS_INCLUDE_SDCARD)
 	  ObjectList *objEntry;

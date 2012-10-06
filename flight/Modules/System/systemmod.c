@@ -281,6 +281,8 @@ static void objectUpdatedCb(UAVObjEvent * ev)
 			retval = -1;
 #if defined(PIOS_INCLUDE_FLASH_SECTOR_SETTINGS)
 			retval = PIOS_FLASHFS_Format();
+#elif defined(PIOS_INCLUDE_FLASH_COMPACT_SETTINGS)
+			retval = PIOS_FLASHFS_Compact_Format();
 #endif
 		}
 		switch(retval) {
