@@ -100,7 +100,9 @@ static void i2c_adapter_process_auto(struct pios_i2c_adapter *i2c_adapter, bool 
 static void i2c_adapter_inject_event(struct pios_i2c_adapter *i2c_adapter, enum i2c_adapter_event event, bool *woken);
 static void i2c_adapter_fsm_init(struct pios_i2c_adapter *i2c_adapter);
 static void i2c_adapter_reset_bus(struct pios_i2c_adapter *i2c_adapter);
+#ifndef USE_FREERTOS
 static bool i2c_adapter_fsm_terminated(struct pios_i2c_adapter *i2c_adapter);
+#endif
 static void i2c_adapter_log_fault(enum pios_i2c_error_type type);
 static bool i2c_adapter_callback_handler(struct pios_i2c_adapter *i2c_adapter);
 
@@ -417,6 +419,7 @@ static void i2c_adapter_reset_bus(struct pios_i2c_adapter *i2c_adapter)
 
 #include <pios_i2c_priv.h>
 
+#ifndef USE_FREERTOS
 /* Return true if the FSM is in a terminal state */
 static bool i2c_adapter_fsm_terminated(struct pios_i2c_adapter *i2c_adapter)
 {
@@ -428,6 +431,7 @@ static bool i2c_adapter_fsm_terminated(struct pios_i2c_adapter *i2c_adapter)
 		return (false);
 	}
 }
+#endif
 
 uint32_t i2c_cb_count = 0;
 static bool i2c_adapter_callback_handler(struct pios_i2c_adapter * i2c_adapter) 
