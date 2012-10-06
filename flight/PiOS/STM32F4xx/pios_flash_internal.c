@@ -140,7 +140,7 @@ int32_t PIOS_Flash_Internal_EraseSector(uint32_t addr)
 	if (PIOS_Flash_Internal_Validate(flash_dev) != 0)
 		return -1;
 
-	FLASH_Status ret = FLASH_ErasePage(addr);
+	FLASH_Status ret = FLASH_EraseSector(addr, VoltageRange_4);
 	if (ret != FLASH_COMPLETE)
 		return -1;
 
