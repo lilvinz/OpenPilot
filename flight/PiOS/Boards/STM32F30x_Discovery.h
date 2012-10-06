@@ -160,36 +160,13 @@ extern uint32_t pios_com_telem_usb_id;
 //-------------------------
 // System Settings
 // 
-// See also System_stm32f4xx.c
+// See also system_stm32f30x.c
 //-------------------------
 //These macros are deprecated
-//please use PIOS_PERIPHERAL_APBx_CLOCK According to the table below
-//#define PIOS_MASTER_CLOCK                       
-//#define PIOS_PERIPHERAL_CLOCK                   
-//#define PIOS_PERIPHERAL_CLOCK					
 
-#define PIOS_SYSCLK										72000000
-//	Peripherals that belongs to APB1 are:
-//	DAC			|PWR				|CAN1,2
-//	I2C1,2,3	|UART4,5			|USART3,2
-//	I2S3Ext		|SPI3/I2S3			|SPI2/I2S2
-//	I2S2Ext		|IWDG				|WWDG
-//	RTC/BKP reg	
-// TIM2,3,4,5,6,7,12,13,14
-
-// Calculated as SYSCLK / APBPresc * (APBPre == 1 ? 1 : 2)   
-// Default APB1 Prescaler = 4 
+#define PIOS_SYSCLK									72000000
 #define PIOS_PERIPHERAL_APB1_CLOCK					(PIOS_SYSCLK / 2)
-
-//	Peripherals belonging to APB2
-//	SDIO			|EXTI				|SYSCFG			|SPI1
-//	ADC1,2,3				
-//	USART1,6
-//	TIM1,8,9,10,11
-//
-// Default APB2 Prescaler = 2
-//
-#define PIOS_PERIPHERAL_APB2_CLOCK					PIOS_SYSCLK
+#define PIOS_PERIPHERAL_APB2_CLOCK					(PIOS_SYSCLK / 1)
 
 
 //-------------------------
@@ -205,9 +182,9 @@ extern uint32_t pios_com_telem_usb_id;
 // PIOS_RCVR
 // See also pios_board.c
 //------------------------
-#define PIOS_RCVR_MAX_DEVS           3
-#define PIOS_RCVR_MAX_CHANNELS       12
-#define PIOS_GCSRCVR_TIMEOUT_MS     100
+#define PIOS_RCVR_MAX_DEVS			3
+#define PIOS_RCVR_MAX_CHANNELS		12
+#define PIOS_GCSRCVR_TIMEOUT_MS		100
 
 //-------------------------
 // Receiver PPM input

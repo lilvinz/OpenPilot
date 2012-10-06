@@ -168,7 +168,7 @@ static const struct pios_spi_cfg pios_spi_gyro_cfg = {
 		.SPI_CRCPolynomial     = 7,
 		.SPI_CPOL              = SPI_CPOL_Low,
 		.SPI_CPHA              = SPI_CPHA_1Edge,
-		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_32,
+		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8,
 	},
 	.use_crc = false,
 	.sclk = {
@@ -690,7 +690,7 @@ void PIOS_RTC_IRQ_Handler (void)
 //Timers used for inputs (1, 2, 3, 16)
 
 static const TIM_TimeBaseInitTypeDef tim_2_3_time_base = {
-	.TIM_Prescaler = (PIOS_PERIPHERAL_APB1_CLOCK / 1000000) - 1,
+	.TIM_Prescaler = (PIOS_PERIPHERAL_APB1_CLOCK / 1000000 * 2) - 1,
 	.TIM_ClockDivision = TIM_CKD_DIV1,
 	.TIM_CounterMode = TIM_CounterMode_Up,
 	.TIM_Period = 0xFFFF,
@@ -772,7 +772,7 @@ static const struct pios_tim_clock_cfg tim_16_cfg = {
 
 // Set up timers that only have inputs on APB1
 static const TIM_TimeBaseInitTypeDef tim_4_time_base = {
-	.TIM_Prescaler = (PIOS_PERIPHERAL_APB1_CLOCK / 1000000) - 1,
+	.TIM_Prescaler = (PIOS_PERIPHERAL_APB1_CLOCK / 1000000 * 2) - 1,
 	.TIM_ClockDivision = TIM_CKD_DIV1,
 	.TIM_CounterMode = TIM_CounterMode_Up,
 	.TIM_Period = ((1000000 / PIOS_SERVO_UPDATE_HZ) - 1),
