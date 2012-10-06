@@ -64,8 +64,6 @@ MODULES += FirmwareIAP
 MODULES += CameraStab
 MODULES += Telemetry
 #MODULES += OveroSync
-PYMODULES = 
-#FlightPlan
 
 # Paths
 OPSYSTEM = ./System
@@ -92,16 +90,6 @@ OPUAVOBJ = ../UAVObjects
 OPUAVOBJINC = $(OPUAVOBJ)/inc
 BOOT = ../Bootloaders/INS
 BOOTINC = $(BOOT)/inc
-PYMITE = $(FLIGHTLIB)/PyMite
-PYMITELIB = $(PYMITE)/lib
-PYMITEPLAT = $(PYMITE)/platform/openpilot
-PYMITETOOLS = $(PYMITE)/tools
-PYMITEVM = $(PYMITE)/vm
-PYMITEINC = $(PYMITEVM)
-PYMITEINC += $(PYMITEPLAT)
-PYMITEINC += $(OUTDIR)
-FLIGHTPLANLIB = $(OPMODULEDIR)/FlightPlan/lib
-FLIGHTPLANS = $(OPMODULEDIR)/FlightPlan/flightplans
 HWDEFSINC = ../board_hw_defs/$(BOARD_NAME)
 UAVOBJSYNTHDIR = $(OUTDIR)/../uavobject-synthetics/flight
 
@@ -111,19 +99,8 @@ include $(PIOSCOMMONLIB)/FreeRTOS/library.mk
 #include $(PIOSCOMMONLIB)/dosfs/library.mk
 include $(PIOSCOMMONLIB)/msheap/library.mk
 
-
 # List C source files here. (C dependencies are automatically generated.)
 # use file-extension c for "c-only"-files
-
-## PyMite files and modules
-SRC += $(OUTDIR)/pmlib_img.c
-SRC += $(OUTDIR)/pmlib_nat.c
-SRC += $(OUTDIR)/pmlibusr_img.c
-SRC += $(OUTDIR)/pmlibusr_nat.c
-PYSRC += $(wildcard ${PYMITEVM}/*.c)
-PYSRC += $(wildcard ${PYMITEPLAT}/*.c)
-PYSRC += ${foreach MOD, ${PYMODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
-SRC += $(PYSRC)
 
 ## MODULES
 SRC += ${foreach MOD, ${MODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
@@ -133,7 +110,6 @@ SRC += $(OPSYSTEM)/discovery.c
 SRC += $(OPSYSTEM)/pios_board.c
 SRC += $(OPSYSTEM)/pios_usb_board_data.c
 SRC += $(OPSYSTEM)/alarms.c
-#SRC += $(OPSYSTEM)/syscalls.c
 SRC += $(OPUAVTALK)/uavtalk.c
 SRC += $(OPUAVOBJ)/uavobjectmanager.c
 SRC += $(OPUAVOBJ)/eventdispatcher.c
