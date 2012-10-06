@@ -652,7 +652,7 @@ all_$(1)_clean: $$(addsuffix _clean, $$(filter bu_$(1), $$(BU_TARGETS)))
 all_$(1)_clean: $$(addsuffix _clean, $$(filter ef_$(1), $$(EF_TARGETS)))
 endef
 
-ALL_BOARDS := discovery discoveryf3
+ALL_BOARDS := discoveryf4 discoveryf3
 
 # SimPosix only builds on Linux so drop it from the list for
 # all other platforms.
@@ -665,7 +665,7 @@ coptercontrol_friendly := CopterControl
 pipxtreme_friendly     := PipXtreme
 revolution_friendly    := Revolution
 simposix_friendly      := SimPosix
-discovery_friendly     := Discovery
+discoveryf4_friendly   := DiscoveryF4
 discoveryf3_friendly   := DiscoveryF3
 
 # SimPosix only builds on Linux so drop it from the list for
@@ -680,7 +680,7 @@ pipxtreme_short        := 'pipx'
 revolution_short       := 'revo'
 simposix_short         := 'posx'
 osd_short              := 'osd '
-discovery_short        := 'disc'
+discoveryf4_short      := 'dif4'
 discoveryf3_short      := 'dif3'
 
 # Start out assuming that we'll build fw, bl and bu for all boards
@@ -694,10 +694,10 @@ EF_BOARDS  := $(ALL_BOARDS)
 BL_BOARDS  := $(filter-out ins, $(BL_BOARDS))
 BU_BOARDS  := $(filter-out ins, $(BU_BOARDS))
 
-# FIXME: The discovery build doesn't have a bootloader updater and erase flash
+# FIXME: The discovery builds don't have a bootloader updater and erase flash
 #        yet so we need to filter them out to prevent errors.
-BU_BOARDS  := $(filter-out discovery, $(BU_BOARDS))
-EF_BOARDS  := $(filter-out discovery, $(EF_BOARDS))
+BU_BOARDS  := $(filter-out discoveryf4, $(BU_BOARDS))
+EF_BOARDS  := $(filter-out discoveryf4, $(EF_BOARDS))
 BU_BOARDS  := $(filter-out discoveryf3, $(BU_BOARDS))
 EF_BOARDS  := $(filter-out discoveryf3, $(EF_BOARDS))
 
