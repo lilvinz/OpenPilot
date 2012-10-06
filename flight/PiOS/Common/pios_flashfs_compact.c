@@ -76,13 +76,13 @@ int32_t PIOS_FLASHFS_Compact_Init(const struct flashfs_compact_cfg * new_cfg)
 	bool magic_good = false;
 
 	while (!magic_good) {
-		if (PIOS_Flash_Internal_ReadData(cfg->chip_begin, (uint8_t *)&object_table_magic, sizeof(object_table_magic)) != 0)
+		if (PIOS_Flash_Internal_ReadData(cfg->addr_obj_table_magic, (uint8_t *)&object_table_magic, sizeof(object_table_magic)) != 0)
 			return -1;
 		if (object_table_magic != cfg->table_magic) {
 			if (magic_fail_count++ > MAX_BADMAGIC) {
 
 				//do the same as format, but dont use format as it is wrapped in transaction as well
-				for (uint32_t addr = cfg->chip_begin; addr < cfg->chip_begin + cfg->chip_size; addr += cfg->sector_size)
+				for (uint32_t addr = cfg->addr_chip_begin; addr < cfg->addr_chip_begin + cfg->chip_size; addr += cfg->sector_size)
 					if (PIOS_Flash_Internal_EraseSector(addr) != 0) {
 						PIOS_Flash_Internal_EndTransaction();
 						return -1;
@@ -107,12 +107,12 @@ int32_t PIOS_FLASHFS_Compact_Init(const struct flashfs_compact_cfg * new_cfg)
 
 	}
 
-	int32_t addr = cfg->obj_table_start;
+	int32_t addr = cfg->addr_obj_table_start;
 	struct objectHeader header;
 	numObjects = 0;
 
 	// Loop through header area while objects detect to count how many saved
-	while (addr < cfg->obj_table_end) {
+	while (addr < cfg->addr_obj_table_end) {
 		// Read the instance data
 		if (PIOS_Flash_Internal_ReadData(addr, (uint8_t *)&header, sizeof(header)) != 0) {
 			PIOS_Flash_Internal_EndTransaction();
@@ -143,7 +143,7 @@ int32_t PIOS_FLASHFS_Compact_Format()
 	if (PIOS_Flash_Internal_StartTransaction() != 0)
 		return -1;
 
-	for (uint32_t addr = cfg->chip_begin; addr < cfg->chip_begin + cfg->chip_size; addr += cfg->sector_size)
+	for (uint32_t addr = cfg->addr_chip_begin; addr < cfg->addr_chip_begin + cfg->chip_size; addr += cfg->sector_size)
 		if (PIOS_Flash_Internal_EraseSector(addr) != 0) {
 			PIOS_Flash_Internal_EndTransaction();
 			return -1;
@@ -167,15 +167,15 @@ int32_t PIOS_FLASHFS_Compact_Format()
  */
 static int32_t PIOS_FLASHFS_Compact_ClearObjectTableHeader()
 {
-	for (uint32_t addr = cfg->chip_begin; addr < cfg->obj_table_end; addr += cfg->sector_size)
+	for (uint32_t addr = cfg->addr_chip_begin; addr < cfg->addr_obj_table_end; addr += cfg->sector_size)
 		if (PIOS_Flash_Internal_EraseSector(addr) != 0)
 			return -1;
 
-	if (PIOS_Flash_Internal_WriteData(cfg->chip_begin, (uint8_t *)&cfg->table_magic, sizeof(cfg->table_magic)) != 0)
+	if (PIOS_Flash_Internal_WriteData(cfg->addr_obj_table_magic, (uint8_t *)&cfg->table_magic, sizeof(cfg->table_magic)) != 0)
 		return -1;
 
 	uint32_t object_table_magic;
-	PIOS_Flash_Internal_ReadData(cfg->chip_begin, (uint8_t *)&object_table_magic, sizeof(object_table_magic));
+	PIOS_Flash_Internal_ReadData(cfg->addr_obj_table_magic, (uint8_t *)&object_table_magic, sizeof(object_table_magic));
 	if (object_table_magic != cfg->table_magic)
 		return -1;
 
@@ -190,11 +190,11 @@ static int32_t PIOS_FLASHFS_Compact_ClearObjectTableHeader()
  */
 static int32_t PIOS_FLASHFS_Compact_GetObjAddress(uint32_t objId, uint16_t instId)
 {
-	int32_t addr = cfg->obj_table_start;
+	int32_t addr = cfg->addr_obj_table_start;
 	struct objectHeader header;
 
 	// Loop through header area while objects detect to count how many saved
-	while (addr < cfg->obj_table_end) {
+	while (addr < cfg->addr_obj_table_end) {
 		// Read the instance data
 		if (PIOS_Flash_Internal_ReadData(addr, (uint8_t *) &header, sizeof(header)) != 0)
 			return -1;
@@ -211,6 +211,19 @@ static int32_t PIOS_FLASHFS_Compact_GetObjAddress(uint32_t objId, uint16_t instI
 	return -1;
 }
 
+static uint32_t PIOS_FLASHFS_Compact_GetFileSize(UAVObjHandle objId)
+{
+	uint32_t objsize = 0;
+	objsize += sizeof(struct fileHeader);
+	if (objsize & 1) ++objsize;
+	objsize += UAVObjGetNumBytes(objId);
+	if (objsize & 1) ++objsize;
+	objsize += sizeof(uint8_t);					//attention this has to be changed if the crc size is increased!
+	if (objsize & 1) ++objsize;
+
+	return objsize;
+}
+
 /**
  * @brief Returns an address for a new object and creates entry into object table
  * @param[in] obj Object handle for object to be saved
@@ -222,6 +235,7 @@ static int32_t PIOS_FLASHFS_Compact_GetObjAddress(uint32_t objId, uint16_t instI
  * @retval -4 FS not initialized
  * @retval -5
  */
+int32_t PIOS_FLASHFS_Compact_GetNewAddress(uint32_t objId, uint16_t instId) __attribute((optimize(0)));
 int32_t PIOS_FLASHFS_Compact_GetNewAddress(uint32_t objId, uint16_t instId)
 {
 	struct objectHeader new_header;
@@ -233,13 +247,13 @@ int32_t PIOS_FLASHFS_Compact_GetNewAddress(uint32_t objId, uint16_t instId)
 	new_header.objMagic = cfg->obj_magic;
 	new_header.objId = objId;
 	new_header.instId = instId;
-	new_header.address = cfg->obj_table_end;
+	new_header.address = cfg->addr_obj_table_end;
 
 	// Loop through header area while objects detect to find next free file address
 	{
 		struct objectHeader search_header;
-		int32_t addr = cfg->obj_table_start;
-		while (addr < cfg->obj_table_end) {
+		int32_t addr = cfg->addr_obj_table_start;
+		while (addr < cfg->addr_obj_table_end) {
 
 			// Read the instance data
 			if (PIOS_Flash_Internal_ReadData(addr, (uint8_t *) &search_header, sizeof(search_header)) != 0)
@@ -254,16 +268,29 @@ int32_t PIOS_FLASHFS_Compact_GetNewAddress(uint32_t objId, uint16_t instId)
 
 			new_header.address += search_file_header.size;
 
-			search_header.address += sizeof(search_header);
+			addr += sizeof(search_header);
 		}
 	}
 
-	int32_t addr = cfg->obj_table_start + sizeof(new_header) * numObjects;
+	//now ensure that the newly created file fits into the currently active page
+	{
+		uint32_t available_in_current_page = cfg->sector_size - new_header.address % cfg->sector_size;
+		if (PIOS_FLASHFS_Compact_GetFileSize(UAVObjGetByID(objId)) > available_in_current_page) {
+			new_header.address = new_header.address - (new_header.address % cfg->sector_size) + cfg->sector_size;
+		}
+	}
+
+	int32_t addr = cfg->addr_obj_table_start + sizeof(new_header) * numObjects;
 
 	// No room for this header in object table
-	if ((addr + sizeof(new_header)) > cfg->obj_table_end)
+	if ((addr + sizeof(new_header)) > cfg->addr_obj_table_end)
 		return -2;
 
+	// no room for this object in file space
+	if (new_header.address + PIOS_FLASHFS_Compact_GetFileSize(UAVObjGetByID(objId)) > cfg->addr_chip_begin + cfg->chip_size)
+		return -2;
+
+	//write out the header
 	if (PIOS_Flash_Internal_WriteData(addr, (uint8_t *) &new_header, sizeof(new_header)) != 0)
 		return -3;
 
@@ -297,7 +324,7 @@ int32_t PIOS_FLASHFS_Compact_ObjSave(UAVObjHandle obj, uint16_t instId, uint8_t 
 	if (addr < 0)
 		addr = PIOS_FLASHFS_Compact_GetNewAddress(objId, instId);
 
-	// Could not allocate a sector
+	// Could not allocate space
 	if (addr < 0) {
 		PIOS_Flash_Internal_EndTransaction();
 		return -1;
@@ -306,18 +333,57 @@ int32_t PIOS_FLASHFS_Compact_ObjSave(UAVObjHandle obj, uint16_t instId, uint8_t 
 	struct fileHeader header = {
 		.id = objId,
 		.instId = instId,
-		.size = sizeof(header) + UAVObjGetNumBytes(obj) + sizeof(crc)
+		.size = PIOS_FLASHFS_Compact_GetFileSize(obj),
 	};
 
 	// Update CRC
 	crc = PIOS_CRC_updateCRC(0, (uint8_t *) &header, sizeof(header));
 	crc = PIOS_CRC_updateCRC(crc, (uint8_t *) data, UAVObjGetNumBytes(obj));
 
-	if (PIOS_Flash_Internal_EraseSector(addr) != 0) {
+	//now this is ugly but necessary
+
+	//erase scratchpad
+	if (PIOS_Flash_Internal_EraseSector(cfg->addr_scratchpad) != 0) {
 		PIOS_Flash_Internal_EndTransaction();
 		return -2;
 	}
 
+	//copy current sector into scratchpad
+	uint32_t current_sector = addr - (addr % cfg->sector_size);
+	for (uint32_t iByte = 0; iByte < cfg->sector_size; iByte += 2)
+	{
+		uint16_t temp;
+		if (PIOS_Flash_Internal_ReadData(current_sector + iByte, (uint8_t *)&temp, sizeof(temp)) != 0) {
+			PIOS_Flash_Internal_EndTransaction();
+		   return -1;
+		}
+		if (PIOS_Flash_Internal_WriteData(cfg->addr_scratchpad + iByte, (uint8_t *)&temp, sizeof(temp)) != 0) {
+			PIOS_Flash_Internal_EndTransaction();
+		   return -1;
+		}
+	}
+
+	//erase current sector
+	if (PIOS_Flash_Internal_EraseSector(current_sector) != 0) {
+		PIOS_Flash_Internal_EndTransaction();
+		return -2;
+	}
+
+	//now transfer bytes before current change back from scratchpad to current_sector
+	for (uint32_t iByte = 0; iByte < addr - current_sector; iByte += 2)
+	{
+		uint16_t temp;
+		if (PIOS_Flash_Internal_ReadData(cfg->addr_scratchpad + iByte, (uint8_t *)&temp, sizeof(temp)) != 0) {
+			PIOS_Flash_Internal_EndTransaction();
+		   return -1;
+		}
+		if (PIOS_Flash_Internal_WriteData(current_sector + iByte, (uint8_t *)&temp, sizeof(temp)) != 0) {
+			PIOS_Flash_Internal_EndTransaction();
+		   return -1;
+		}
+	}
+
+	//next write the new data to the current sector
 	struct pios_flash_chunk chunks[3] = {
 		{
 			.addr = (uint8_t *) &header,
@@ -325,19 +391,34 @@ int32_t PIOS_FLASHFS_Compact_ObjSave(UAVObjHandle obj, uint16_t instId, uint8_t 
 		},
 		{
 			.addr = (uint8_t *) data,
-			.len = UAVObjGetNumBytes(obj)
+			.len = UAVObjGetNumBytes(obj),
 		},
 		{
 			.addr = (uint8_t *) &crc,
-			.len = sizeof(crc)
+			.len = sizeof(crc),
 		}
 	};
 
+	//write chunks will round len up to an even value for each chunk and fill with zeros
 	if (PIOS_Flash_Internal_WriteChunks(addr, chunks, NELEMENTS(chunks)) != 0) {
 		PIOS_Flash_Internal_EndTransaction();
 	   return -1;
 	}
 	
+	//and finally transfer the remaining data from scratchpad back to current_sector
+	for (uint32_t iByte = (addr % cfg->sector_size) + header.size; iByte < cfg->sector_size; iByte += 2)
+	{
+		uint16_t temp;
+		if (PIOS_Flash_Internal_ReadData(cfg->addr_scratchpad + iByte, (uint8_t *)&temp, sizeof(temp)) != 0) {
+			PIOS_Flash_Internal_EndTransaction();
+		   return -1;
+		}
+		if (PIOS_Flash_Internal_WriteData(current_sector + iByte, (uint8_t *)&temp, sizeof(temp)) != 0) {
+			PIOS_Flash_Internal_EndTransaction();
+		   return -1;
+		}
+	}
+
 	if (PIOS_Flash_Internal_EndTransaction() != 0) {
 		return -1;
 	}
@@ -366,8 +447,6 @@ int32_t PIOS_FLASHFS_Compact_ObjLoad(UAVObjHandle obj, uint16_t instId, uint8_t 
 	uint16_t objSize = UAVObjGetNumBytes(obj);
 	uint8_t crc = 0;
 	uint8_t crcFlash = 0;
-	const uint8_t crc_read_step = 8;
-	uint8_t crc_read_buffer[crc_read_step];
 
 	if (PIOS_Flash_Internal_StartTransaction() != 0)
 		return -1;
@@ -399,17 +478,25 @@ int32_t PIOS_FLASHFS_Compact_ObjLoad(UAVObjHandle obj, uint16_t instId, uint8_t 
 	
 	// To avoid having to allocate the RAM for a copy of the object, we read by chunks
 	// and compute the CRC
-	for (uint32_t i = 0; i < objSize; i += crc_read_step) {
-		if (PIOS_Flash_Internal_ReadData(addr + sizeof(header) + i, crc_read_buffer, crc_read_step) != 0) {
+	uint32_t temp_addr = addr + sizeof(header);
+	if (temp_addr & 1)
+		++temp_addr;
+
+	for (uint32_t i = 0; i < objSize; ++i) {
+		uint8_t byte;
+		if (PIOS_Flash_Internal_ReadData(temp_addr + i, &byte, 1) != 0) {
 			PIOS_Flash_Internal_EndTransaction();
 			return -4;
 		}
-		uint8_t valid_bytes = ((i + crc_read_step) >= objSize) ? objSize - i : crc_read_step;
-		crc = PIOS_CRC_updateCRC(crc, crc_read_buffer, valid_bytes);
+		crc = PIOS_CRC_updateCRC(crc, &byte, 1);
 	}
 
+	temp_addr += objSize;
+	if (temp_addr & 1)
+		++temp_addr;
+
 	// Read CRC (written so will work when CRC changes to uint16)
-	if (PIOS_Flash_Internal_ReadData(addr + sizeof(header) + objSize, (uint8_t *) &crcFlash, sizeof(crcFlash)) != 0) {
+	if (PIOS_Flash_Internal_ReadData(temp_addr, (uint8_t *) &crcFlash, sizeof(crcFlash)) != 0) {
 		PIOS_Flash_Internal_EndTransaction();
 		return -5;
 	}
@@ -420,7 +507,10 @@ int32_t PIOS_FLASHFS_Compact_ObjLoad(UAVObjHandle obj, uint16_t instId, uint8_t 
 	}
 
 	// Read the instance data
-	if (PIOS_Flash_Internal_ReadData(addr + sizeof(header), data, objSize) != 0) {
+	temp_addr = addr + sizeof(header);
+	if (temp_addr & 1)
+		++temp_addr;
+	if (PIOS_Flash_Internal_ReadData(temp_addr, data, objSize) != 0) {
 		PIOS_Flash_Internal_EndTransaction();
 		return -4;
 	}

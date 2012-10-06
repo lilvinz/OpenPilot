@@ -29,7 +29,7 @@
  */
 #include "pios.h"
 
-
+#if defined(PIOS_INCLUDE_FLASH_INTERNAL)
 
 enum pios_flash_internal_dev_magic {
 	PIOS_FLASH_INTERNAL_DEV_MAGIC = 0x1e6bc239,
@@ -149,11 +149,13 @@ int32_t PIOS_Flash_Internal_EraseSector(uint32_t addr)
 
 /**
  * @brief Write data
- * @param[in] addr Address in flash to write to
+ * @param[in] addr Address in flash to write to (must be a multiple of 2)
  * @param[in] data Pointer to data to write to flash
- * @param[in] len Length of data to write (must be a multipe of 2)
+ * @param[in] len Length of data to write
  * @return Zero if success or error code
  * @retval -1 operation failed
+ * @retval -2 invalid addr
+ * @retval -2 invalid length
  */
 int32_t PIOS_Flash_Internal_WriteData(uint32_t addr, const uint8_t * data, uint16_t len) __attribute((optimize(0)));
 int32_t PIOS_Flash_Internal_WriteData(uint32_t addr, const uint8_t * data, uint16_t len)
@@ -161,27 +163,10 @@ int32_t PIOS_Flash_Internal_WriteData(uint32_t addr, const uint8_t * data, uint1
 	if (PIOS_Flash_Internal_Validate(flash_dev) != 0)
 		return -1;
 
-	//handle first byte if odd address
-	if ((addr & 1) != 0)
-	{
-		uint32_t first_addr = addr & (~1);
-		uint16_t first_data;
+	if (addr & 1)
+		return -2;
 
-		if (PIOS_Flash_Internal_ReadData(first_addr, (uint8_t*)&first_data, sizeof(first_data)) != 0)
-			return -1;
-
-		first_data &= 0xff00;
-		first_data |= data[0];
-
-		FLASH_Status ret = FLASH_ProgramHalfWord(first_addr, first_data);
-		if (ret != FLASH_COMPLETE)
-			return -1;
-
-		++addr;
-		++data;
-		--len;
-	}
-
+	//write all data up to an even length
 	for (uint32_t iByte = 0; iByte < (len & (~1)); iByte += 2) {
 		uint16_t halfword = (data[iByte + 1] << 8) | (data[iByte]);
 		FLASH_Status ret = FLASH_ProgramHalfWord(addr + iByte, halfword);
@@ -189,19 +174,12 @@ int32_t PIOS_Flash_Internal_WriteData(uint32_t addr, const uint8_t * data, uint1
 			return -1;
 	}
 
-	//handle last byte if odd count after handling of first byte
-	if ((len & 1) != 0)
+	//handle the eventually pending single byte, and fill it up with zero
+	if (len & 1)
 	{
-		uint32_t last_addr = (addr + len - 1) & (~1);
-		uint16_t last_data;
-
-		if (PIOS_Flash_Internal_ReadData(last_addr, (uint8_t*)&last_data, sizeof(last_data)) != 0)
-			return -1;
-
-		last_data &= 0x00ff;
-		last_data |= data[len - 1] << 8;
-
-		FLASH_Status ret = FLASH_ProgramHalfWord(last_addr, last_data);
+		uint32_t last_addr = addr + len - 1;
+		uint16_t halfword = data[len - 1];
+		FLASH_Status ret = FLASH_ProgramHalfWord(last_addr, halfword);
 		if (ret != FLASH_COMPLETE)
 			return -1;
 	}
@@ -230,6 +208,10 @@ int32_t PIOS_Flash_Internal_WriteChunks(uint32_t addr, const struct pios_flash_c
 			return retval;
 
 		addr += chunk->len;
+
+		//round up to even addresses
+		if (chunk->len & 1)
+			++addr;
 	}
 
 	return 0;
@@ -252,3 +234,5 @@ int32_t PIOS_Flash_Internal_ReadData(uint32_t addr, uint8_t * data, uint16_t len
 
 	return 0;
 }
+
+#endif
