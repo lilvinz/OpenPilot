@@ -114,13 +114,13 @@ TIM8  |           |           |           |
 // PIOS_I2C
 // See also pios_board.c
 //------------------------
-#define PIOS_I2C_MAX_DEVS			1
+#define PIOS_I2C_MAX_DEVS			2
 
 
 //-------------------------
 // PIOS_USART
 //-------------------------
-#define PIOS_USART_MAX_DEVS			3
+#define PIOS_USART_MAX_DEVS			5
 
 
 //-------------------------
@@ -128,7 +128,7 @@ TIM8  |           |           |           |
 //
 // See also pios_board.c
 //-------------------------
-#define PIOS_COM_MAX_DEVS			3
+#define PIOS_COM_MAX_DEVS			5
 
 extern uint32_t pios_com_telem_rf_id;
 #define PIOS_COM_TELEM_RF               (pios_com_telem_rf_id)

@@ -234,11 +234,13 @@ static const struct pios_flash_jedec_cfg flash_m25p_cfg = {
 };
 #elif defined(PIOS_INCLUDE_FLASH_INTERNAL)
 static const struct flashfs_compact_cfg flashfs_cfg = {
-	.chip_begin = 0x08004000,			//right after the bootloader (16kb)
-	.chip_size = 0x00004000,			//right before the main firmware (32kb)
-	.sector_size = 0x00000800,			//always 2048 for STM32F30X
-	.obj_table_start = 0x08004010,		//leave some room for the table magic
-	.obj_table_end = 0x08004800,		//right after the first sector
+	.addr_chip_begin = 0x08004000,			//right after the bootloader (16kb)
+	.addr_scratchpad = 0x08004000,			//one empty sector which is being used as a scratchpad
+	.addr_obj_table_magic = 0x08004800,
+	.addr_obj_table_start = 0x08004810,		//leave some room for the table magic
+	.addr_obj_table_end = 0x08005000,		//right after the first sector - this tables takes 127 entries with 16 bytes each
+	.chip_size = 0x00004000,				//right before the main firmware (32kb)
+	.sector_size = 0x00000800,				//always 2048 for STM32F30X
 	.table_magic = 0x854a1ab0,
 	.obj_magic = 0x170fbc23,
 };
@@ -287,7 +289,7 @@ void PIOS_Board_Init(void) {
 #ifndef ERASE_FLASH
 	/* Initialize watchdog as early as possible to catch faults during init */
 #ifndef DEBUG
-	//PIOS_WDG_Init();
+	PIOS_WDG_Init();
 #endif
 #endif
 
