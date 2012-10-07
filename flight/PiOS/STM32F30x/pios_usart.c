@@ -135,25 +135,18 @@ static void PIOS_USART_3_irq_handler (void)
 	PIOS_USART_generic_irq_handler (PIOS_USART_3_id);
 }
 
-static uint32_t PIOS_USART_4_id;
-void USART4_IRQHandler(void) __attribute__ ((alias ("PIOS_USART_4_irq_handler")));
-static void PIOS_USART_4_irq_handler (void)
+static uint32_t PIOS_UART_4_id;
+void UART4_IRQHandler(void) __attribute__ ((alias ("PIOS_UART_4_irq_handler")));
+static void PIOS_UART_4_irq_handler (void)
 {
-	PIOS_USART_generic_irq_handler (PIOS_USART_4_id);
+	PIOS_USART_generic_irq_handler (PIOS_UART_4_id);
 }
 
-static uint32_t PIOS_USART_5_id;
-void USART5_IRQHandler(void) __attribute__ ((alias ("PIOS_USART_5_irq_handler")));
-static void PIOS_USART_5_irq_handler (void)
+static uint32_t PIOS_UART_5_id;
+void UART5_IRQHandler(void) __attribute__ ((alias ("PIOS_UART_5_irq_handler")));
+static void PIOS_UART_5_irq_handler (void)
 {
-	PIOS_USART_generic_irq_handler (PIOS_USART_5_id);
-}
-
-static uint32_t PIOS_USART_6_id;
-void USART6_IRQHandler(void) __attribute__ ((alias ("PIOS_USART_6_irq_handler")));
-static void PIOS_USART_6_irq_handler (void)
-{
-	PIOS_USART_generic_irq_handler (PIOS_USART_6_id);
+	PIOS_USART_generic_irq_handler (PIOS_UART_5_id);
 }
 
 /**
@@ -191,6 +184,15 @@ int32_t PIOS_USART_Init(uint32_t * usart_id, const struct pios_usart_cfg * cfg)
 	if (usart_dev->cfg->tx.gpio != 0)
 		GPIO_Init(usart_dev->cfg->tx.gpio, (GPIO_InitTypeDef *)&usart_dev->cfg->tx.init);
 
+	USART_ClockInitTypeDef USART_ClockInitStruct = {
+		.USART_Clock = USART_Clock_Enable,
+		.USART_CPOL = USART_CPOL_Low,
+		.USART_CPHA = USART_CPHA_1Edge,
+		.USART_LastBit = USART_LastBit_Disable,
+	};
+
+	//USART_ClockInit(usart_dev->cfg->regs, &USART_ClockInitStruct);
+
 	/* Configure the USART */
 	USART_Init(usart_dev->cfg->regs, (USART_InitTypeDef *)&usart_dev->cfg->init);
 
@@ -208,10 +210,10 @@ int32_t PIOS_USART_Init(uint32_t * usart_id, const struct pios_usart_cfg * cfg)
 		PIOS_USART_3_id = (uint32_t)usart_dev;
 		break;
 	case (uint32_t)UART4:
-		PIOS_USART_4_id = (uint32_t)usart_dev;
+		PIOS_UART_4_id = (uint32_t)usart_dev;
 		break;
 	case (uint32_t)UART5:
-		PIOS_USART_5_id = (uint32_t)usart_dev;
+		PIOS_UART_5_id = (uint32_t)usart_dev;
 		break;
 	}
 	NVIC_Init((NVIC_InitTypeDef *)&(usart_dev->cfg->irq.init));
@@ -310,13 +312,13 @@ static void PIOS_USART_generic_irq_handler(uint32_t usart_id)
 	PIOS_Assert(valid);
 	
 	/* Force read of dr after sr to make sure to clear error flags */
-	volatile uint16_t sr = usart_dev->cfg->regs->ISR;
-	volatile uint8_t dr = usart_dev->cfg->regs->RDR;
+//	volatile uint32_t sr = usart_dev->cfg->regs->ISR;
+//	volatile uint16_t dr = usart_dev->cfg->regs->RDR;
 	
 	/* Check if RXNE flag is set */
 	bool rx_need_yield = false;
-	if (sr & USART_FLAG_RXNE) {
-		uint8_t byte = dr;
+	if (USART_GetFlagStatus(usart_dev->cfg->regs, USART_ISR_RXNE)) {
+		uint8_t byte = (uint8_t)USART_ReceiveData(usart_dev->cfg->regs);
 		if (usart_dev->rx_in_cb) {
 			(void) (usart_dev->rx_in_cb)(usart_dev->rx_in_context, &byte, 1, NULL, &rx_need_yield);
 		}
@@ -324,7 +326,7 @@ static void PIOS_USART_generic_irq_handler(uint32_t usart_id)
 	
 	/* Check if TXE flag is set */
 	bool tx_need_yield = false;
-	if (sr & USART_FLAG_TXE) {
+	if (USART_GetFlagStatus(usart_dev->cfg->regs, USART_ISR_TXE)) {
 		if (usart_dev->tx_out_cb) {
 			uint8_t b;
 			uint16_t bytes_to_send;
@@ -333,7 +335,7 @@ static void PIOS_USART_generic_irq_handler(uint32_t usart_id)
 			
 			if (bytes_to_send > 0) {
 				/* Send the byte we've been given */
-				usart_dev->cfg->regs->TDR = b;
+				USART_SendData(usart_dev->cfg->regs, b);
 			} else {
 				/* No bytes to send, disable TXE interrupt */
 				USART_ITConfig(usart_dev->cfg->regs, USART_IT_TXE, DISABLE);
