@@ -92,6 +92,7 @@ int32_t PIOS_Flash_Internal_Init(const struct pios_flash_internal_cfg * cfg)
 
 	//Enable register access
 	FLASH_Unlock();
+	FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
 
 	return 0;
 }
@@ -140,7 +141,92 @@ int32_t PIOS_Flash_Internal_EraseSector(uint32_t addr)
 	if (PIOS_Flash_Internal_Validate(flash_dev) != 0)
 		return -1;
 
-	FLASH_Status ret = FLASH_EraseSector(addr, VoltageRange_4);
+	struct device_flash_sector {
+		uint32_t start;
+		uint32_t size;
+		uint16_t st_sector;
+	};
+
+	static const struct device_flash_sector flash_sectors[] = {
+		[0] = {
+			.start = 0x08000000,
+			.size  = 16 * 1024,
+			.st_sector = FLASH_Sector_0,
+		},
+		[1] = {
+			.start = 0x08004000,
+			.size  = 16 * 1024,
+			.st_sector = FLASH_Sector_1,
+		},
+		[2] = {
+			.start = 0x08008000,
+			.size  = 16 * 1024,
+			.st_sector = FLASH_Sector_2,
+		},
+		[3] = {
+			.start = 0x0800C000,
+			.size  = 16 * 1024,
+			.st_sector = FLASH_Sector_3,
+		},
+		[4] = {
+			.start = 0x08010000,
+			.size  = 64 * 1024,
+			.st_sector = FLASH_Sector_4,
+		},
+		[5] = {
+			.start = 0x08020000,
+			.size  = 128 * 1024,
+			.st_sector = FLASH_Sector_5,
+		},
+		[6] = {
+			.start = 0x08040000,
+			.size  = 128 * 1024,
+			.st_sector = FLASH_Sector_6,
+		},
+		[7] = {
+			.start = 0x08060000,
+			.size  = 128 * 1024,
+			.st_sector = FLASH_Sector_7,
+		},
+		[8] = {
+			.start = 0x08080000,
+			.size  = 128 * 1024,
+			.st_sector = FLASH_Sector_8,
+		},
+		[9] = {
+			.start = 0x080A0000,
+			.size  = 128 * 1024,
+			.st_sector = FLASH_Sector_9,
+		},
+		[10] = {
+			.start = 0x080C0000,
+			.size  = 128 * 1024,
+			.st_sector = FLASH_Sector_10,
+		},
+		[11] = {
+			.start = 0x080E0000,
+			.size  = 128 * 1024,
+			.st_sector = FLASH_Sector_11,
+		},
+	};
+
+
+	int8_t sector_number = -1;
+
+	for (uint8_t i = 0; i < NELEMENTS(flash_sectors); i++) {
+		const struct device_flash_sector * sector = &flash_sectors[i];
+		if ((addr >= sector->start) &&
+			(addr < (sector->start + sector->size))) {
+			/* address lies within this sector */
+			sector_number = sector->st_sector;
+			break;
+		}
+	}
+
+	if (sector_number == -1)
+		return -1;
+
+	FLASH_Status ret = FLASH_EraseSector(sector_number, VoltageRange_3);
 	if (ret != FLASH_COMPLETE)
 		return -1;
 
@@ -157,7 +243,6 @@ int32_t PIOS_Flash_Internal_EraseSector(uint32_t addr)
  * @retval -2 invalid addr
  * @retval -2 invalid length
  */
-int32_t PIOS_Flash_Internal_WriteData(uint32_t addr, const uint8_t * data, uint16_t len) __attribute((optimize(0)));
 int32_t PIOS_Flash_Internal_WriteData(uint32_t addr, const uint8_t * data, uint16_t len)
 {
 	if (PIOS_Flash_Internal_Validate(flash_dev) != 0)

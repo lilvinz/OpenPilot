@@ -197,16 +197,23 @@ static const struct pios_flash_jedec_cfg flash_m25p_cfg = {
 	.chip_erase = 0xC7
 };
 #elif defined(PIOS_INCLUDE_FLASH_INTERNAL)
+/*
+ * Currently this does not work properly on the F4
+ * I suspect it is because erasing the flash sectors takes too long and thus kills the usb link
+ *
+ */
 static const struct flashfs_compact_cfg flashfs_cfg = {
-	.addr_chip_begin = 0x08008000,			//right after the bootloader (32kb)
-	.addr_scratchpad = 0x08008000,			//one empty sector which is being used as a scratchpad
-	.addr_obj_table_magic = 0x0800c000,
-	.addr_obj_table_start = 0x0800c010,		//leave some room for the table magic
-	.addr_obj_table_end = 0x08010000,		//right after the first sector - this tables takes 1024 entries with 16 bytes each
-	.chip_size = 0x00010000,				//right before the main firmware (128kb)
-	.sector_size = 0x00004000,				//16kb in this case
-	.table_magic = 0x854a1ab0,
-	.obj_magic = 0x170fbc23,
+	.addr_chip_begin = 		0x08008000,		//right after the bootloader (32kb)
+	.addr_scratchpad = 		0x08008000,		//one empty 16kb sector which is being used as a scratchpad
+	.addr_files = 			0x0800c000,		//use this 16kb sector to store the actual settings contents
+	.addr_obj_table_magic = 0x08010000,		//use this 64kb sector (but only the first 16k) for the header table
+											//using this for files or header wont work because the erase time is too long
+	.addr_obj_table_start = 0x08010010,		//leave some room for the table magic
+	.addr_obj_table_end = 	0x08014000,		//right after the first sector - this tables takes 1024 entries with 16 bytes each
+	.chip_size = 			0x0000c000,		//right before the main firmware (spanning 48kb over 3 sectors)
+	.sector_size = 			0x00004000,		//16kb in this case
+	.table_magic = 			0x854a1ab0,
+	.obj_magic = 			0x170fbc23,
 };
 
 static const struct pios_flash_internal_cfg flash_cfg = {

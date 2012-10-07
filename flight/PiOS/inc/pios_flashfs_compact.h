@@ -34,6 +34,7 @@
 struct flashfs_compact_cfg {
 	uint32_t addr_chip_begin;
 	uint32_t addr_scratchpad;
+	uint32_t addr_files;
 	uint32_t addr_obj_table_magic;
 	uint32_t addr_obj_table_start;
 	uint32_t addr_obj_table_end;

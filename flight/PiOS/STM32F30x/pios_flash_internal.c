@@ -157,7 +157,6 @@ int32_t PIOS_Flash_Internal_EraseSector(uint32_t addr)
  * @retval -2 invalid addr
  * @retval -2 invalid length
  */
-int32_t PIOS_Flash_Internal_WriteData(uint32_t addr, const uint8_t * data, uint16_t len) __attribute((optimize(0)));
 int32_t PIOS_Flash_Internal_WriteData(uint32_t addr, const uint8_t * data, uint16_t len)
 {
 	if (PIOS_Flash_Internal_Validate(flash_dev) != 0)

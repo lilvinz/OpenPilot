@@ -32,6 +32,8 @@
 #include "openpilot.h"
 #include "uavobjectmanager.h"
 
+#if defined(PIOS_INCLUDE_FLASH_COMPACT_SETTINGS)
+
 // Private functions
 static int32_t PIOS_FLASHFS_Compact_ClearObjectTableHeader();
 static int32_t PIOS_FLASHFS_Compact_GetObjAddress(uint32_t objId, uint16_t instId);
@@ -167,7 +169,7 @@ int32_t PIOS_FLASHFS_Compact_Format()
  */
 static int32_t PIOS_FLASHFS_Compact_ClearObjectTableHeader()
 {
-	for (uint32_t addr = cfg->addr_chip_begin; addr < cfg->addr_obj_table_end; addr += cfg->sector_size)
+	for (uint32_t addr = cfg->addr_obj_table_magic; addr < cfg->addr_obj_table_end; addr += cfg->sector_size)
 		if (PIOS_Flash_Internal_EraseSector(addr) != 0)
 			return -1;
 
@@ -246,7 +248,7 @@ int32_t PIOS_FLASHFS_Compact_GetNewAddress(uint32_t objId, uint16_t instId)
 	new_header.objMagic = cfg->obj_magic;
 	new_header.objId = objId;
 	new_header.instId = instId;
-	new_header.address = cfg->addr_obj_table_end;
+	new_header.address = cfg->addr_files;
 
 	// Loop through header area while objects detect to find next free file address
 	{
@@ -566,3 +568,5 @@ int32_t PIOS_FLASHFS_Compact_ObjDelete(UAVObjHandle obj, uint16_t instId)
 
 	return 0;
 }
+
+#endif
