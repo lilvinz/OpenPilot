@@ -652,7 +652,7 @@ all_$(1)_clean: $$(addsuffix _clean, $$(filter bu_$(1), $$(BU_TARGETS)))
 all_$(1)_clean: $$(addsuffix _clean, $$(filter ef_$(1), $$(EF_TARGETS)))
 endef
 
-ALL_BOARDS := discoveryf4 discoveryf3
+ALL_BOARDS := discoveryf4 discoveryf3 quanton
 
 # SimPosix only builds on Linux so drop it from the list for
 # all other platforms.
@@ -667,6 +667,7 @@ revolution_friendly    := Revolution
 simposix_friendly      := SimPosix
 discoveryf4_friendly   := DiscoveryF4
 discoveryf3_friendly   := DiscoveryF3
+quanton_friendly   := Quanton
 
 # SimPosix only builds on Linux so drop it from the list for
 # all other platforms.
@@ -682,6 +683,7 @@ simposix_short         := 'posx'
 osd_short              := 'osd '
 discoveryf4_short      := 'dif4'
 discoveryf3_short      := 'dif3'
+quanton_short          := 'quan'
 
 # Start out assuming that we'll build fw, bl and bu for all boards
 FW_BOARDS  := $(ALL_BOARDS)
@@ -700,6 +702,8 @@ BU_BOARDS  := $(filter-out discoveryf4, $(BU_BOARDS))
 EF_BOARDS  := $(filter-out discoveryf4, $(EF_BOARDS))
 BU_BOARDS  := $(filter-out discoveryf3, $(BU_BOARDS))
 EF_BOARDS  := $(filter-out discoveryf3, $(EF_BOARDS))
+BU_BOARDS  := $(filter-out quanton, $(BU_BOARDS))
+EF_BOARDS  := $(filter-out quanton, $(EF_BOARDS))
 
 # SimPosix doesn't have a BL, BU or EF target so we need to
 # filter them out to prevent errors on the all_flight target.

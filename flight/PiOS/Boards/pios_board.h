@@ -17,6 +17,8 @@
 #include "STM32F4xx_Discovery.h"
 #elif USE_STM32F30x_Discovery
 #include "STM32F30x_Discovery.h"
+#elif USE_STM32F4xx_Quanton
+#include "STM32F4xx_Quanton.h"
 #else
 #error Board definition has not been provided.
 #endif
