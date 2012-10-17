@@ -64,6 +64,9 @@ MODULES += FirmwareIAP
 MODULES += CameraStab
 MODULES += Telemetry
 #MODULES += OveroSync
+MODULES += TxPID
+#MODULES += Fault
+MODULES += AutoTune
 
 # Paths
 OPSYSTEM = ./System
@@ -109,7 +112,7 @@ include $(PIOSCOMMONLIB)/msheap/library.mk
 SRC += ${foreach MOD, ${MODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
 ## OPENPILOT CORE:
 SRC += ${OPMODULEDIR}/System/systemmod.c
-SRC += $(OPSYSTEM)/discovery.c
+SRC += $(OPSYSTEM)/discoveryf3.c
 SRC += $(OPSYSTEM)/pios_board.c
 SRC += $(OPSYSTEM)/pios_usb_board_data.c
 SRC += $(OPSYSTEM)/alarms.c
