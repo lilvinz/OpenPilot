@@ -38,8 +38,14 @@ OUTDIR := $(TOP)/build/$(TARGET)
 DEBUG ?= NO
 
 # Include objects that are just nice information to show
-DIAGNOSTICS ?= NO
+STACK_DIAGNOSTICS ?= NO
+MIXERSTATUS_DIAGNOSTICS ?= NO
+RATEDESIRED_DIAGNOSTICS ?= NO
+I2C_WDG_STATS_DIAGNOSTICS ?= NO
 DIAG_TASKS ?= NO
+
+#Or just turn on all the above diagnostics. WARNING: This consumes massive amounts of memory.
+ALL_DIGNOSTICS ?=NO
 
 # Set to YES to build a FW version that will erase all flash memory
 ERASE_FLASH ?= NO
@@ -68,6 +74,7 @@ USE_GPS ?= YES
 USE_TXPID ?= YES
 USE_I2C ?= NO
 USE_ALTITUDE ?= NO
+USE_AUTOTUNE ?= YES
 TEST_FAULTS ?= NO
 
 # List of optional modules to include
@@ -94,6 +101,9 @@ endif
 ifeq ($(TEST_FAULTS), YES)
 OPTMODULES += Fault
 endif
+ifeq ($(USE_AUTOTUNE), YES)
+OPTMODULES += Autotune
+endif
 
 # List of mandatory modules to include
 MODULES = Attitude Stabilization Actuator ManualControl FirmwareIAP
@@ -111,6 +121,8 @@ OPTESTS  = ./Tests
 OPMODULEDIR = ../Modules
 FLIGHTLIB = ../Libraries
 FLIGHTLIBINC = $(FLIGHTLIB)/inc
+MATHLIB = ../Libraries/math
+MATHLIBINC = ../Libraries/math
 PIOS = ../PiOS
 PIOSINC = $(PIOS)/inc
 PIOSSTM32F10X = $(PIOS)/STM32F10x
@@ -199,9 +211,13 @@ SRC += $(OPUAVSYNTHDIR)/attitudesettings.c
 SRC += $(OPUAVSYNTHDIR)/camerastabsettings.c
 SRC += $(OPUAVSYNTHDIR)/cameradesired.c
 SRC += $(OPUAVSYNTHDIR)/gpsposition.c
+SRC += $(OPUAVSYNTHDIR)/gpsvelocity.c
+SRC += $(OPUAVSYNTHDIR)/gpssettings.c
 SRC += $(OPUAVSYNTHDIR)/hwsettings.c
 SRC += $(OPUAVSYNTHDIR)/gcsreceiver.c
 SRC += $(OPUAVSYNTHDIR)/receiveractivity.c
+SRC += $(OPUAVSYNTHDIR)/relaytuningsettings.c
+SRC += $(OPUAVSYNTHDIR)/relaytuning.c
 SRC += $(OPUAVSYNTHDIR)/taskinfo.c
 SRC += $(OPUAVSYNTHDIR)/mixerstatus.c
 SRC += $(OPUAVSYNTHDIR)/ratedesired.c
@@ -237,6 +253,7 @@ SRC += $(PIOSSTM32F10X)/pios_bl_helper.c
 SRC += $(PIOSSTM32F10X)/pios_usb.c
 SRC += $(PIOSSTM32F10X)/pios_usbhook.c
 SRC += $(PIOSSTM32F10X)/pios_usb_hid.c
+SRC += $(PIOSSTM32F10X)/pios_usb_rctx.c
 SRC += $(PIOSSTM32F10X)/pios_usb_cdc.c
 SRC += $(PIOSSTM32F10X)/pios_usb_hid_istr.c
 SRC += $(PIOSSTM32F10X)/pios_usb_hid_pwr.c
@@ -261,6 +278,8 @@ SRC += $(PIOSCOMMON)/printf-stdarg.c
 SRC += $(FLIGHTLIB)/fifo_buffer.c
 SRC += $(FLIGHTLIB)/CoordinateConversions.c
 SRC += $(FLIGHTLIB)/taskmonitor.c
+SRC += $(MATHLIB)/sin_lookup.c
+SRC += $(MATHLIB)/pid.c
 
 ## CMSIS for STM32
 SRC += $(CMSISDIR)/core_cm3.c
@@ -361,6 +380,7 @@ EXTRAINCDIRS  += $(OPUAVSYNTHDIR)
 EXTRAINCDIRS  += $(PIOS)
 EXTRAINCDIRS  += $(PIOSINC)
 EXTRAINCDIRS  += $(FLIGHTLIBINC)
+EXTRAINCDIRS  += $(MATHLIBINC)
 EXTRAINCDIRS  += $(PIOSSTM32F10X)
 EXTRAINCDIRS  += $(PIOSCOMMON)
 EXTRAINCDIRS  += $(PIOSBOARDS)
@@ -471,11 +491,25 @@ ifeq ($(DEBUG),YES)
 CFLAGS += -DDEBUG
 endif
 
-ifeq ($(DIAGNOSTICS),YES)
-CFLAGS += -DDIAGNOSTICS
+#The following Makefile command, ifneq (, $(filter) $(A), $(B) $(C)) is equivalent 
+# to the pseudocode `if(A== B || A==C)`
+ifneq (,$(filter YES,$(STACK_DIAGNOSTICS) $(ALL_DIGNOSTICS)))
+CFLAGS += -DSTACK_DIAGNOSTICS
 endif
 
-ifeq ($(DIAG_TASKS),YES)
+ifneq (,$(filter YES,$(MIXERSTATUS_DIAGNOSTICS) $(ALL_DIGNOSTICS)))
+CFLAGS += -DMIXERSTATUS_DIAGNOSTICS
+endif
+
+ifneq (,$(filter YES,$(RATEDESIRED_DIAGNOSTICS) $(ALL_DIGNOSTICS)))
+CFLAGS += -DRATEDESIRED_DIAGNOSTICS
+endif
+
+ifneq (,$(filter YES,$(I2C_WDG_STATS_DIAGNOSTICS) $(ALL_DIGNOSTICS)))
+CFLAGS += -DI2C_WDG_STATS_DIAGNOSTICS
+endif
+
+ifneq (,$(filter YES,$(DIAG_TASKS) $(ALL_DIGNOSTICS)))
 CFLAGS += -DDIAG_TASKS
 endif
 
@@ -500,6 +534,7 @@ endif
 
 CFLAGS += -Wall
 CFLAGS += -Werror
+CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -Wa,-adhlns=$(addprefix $(OUTDIR)/, $(notdir $(addsuffix .lst, $(basename $<))))
 # Compiler flags to generate dependency files:
 CFLAGS += -MD -MP -MF $(OUTDIR)/dep/$(@F).d
