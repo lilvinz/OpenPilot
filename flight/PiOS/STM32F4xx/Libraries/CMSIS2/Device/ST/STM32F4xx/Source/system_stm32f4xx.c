@@ -145,6 +145,17 @@
 /******************************************************************************/
 
 /************************* PLL Parameters *************************************/
+#if (HSE_VALUE == 16000000)
+/* PLL_VCO = (HSE_VALUE or HSI_VALUE / PLL_M) * PLL_N */
+#define PLL_M      16
+#define PLL_N      336
+
+/* SYSCLK = PLL_VCO / PLL_P */
+#define PLL_P      2
+
+/* USB OTG FS, SDIO and RNG Clock =  PLL_VCO / PLLQ */
+#define PLL_Q      7
+#else
 /* PLL_VCO = (HSE_VALUE or HSI_VALUE / PLL_M) * PLL_N */
 #define PLL_M      10
 #define PLL_N      420
@@ -154,6 +165,7 @@
 
 /* USB OTG FS, SDIO and RNG Clock =  PLL_VCO / PLLQ */
 #define PLL_Q      7
+#endif
 
 /******************************************************************************/
 
@@ -346,6 +358,28 @@ static void SetSysClock(void)
 /******************************************************************************/
   __IO uint32_t StartUpCounter = 0, HSEStatus = 0;
   
+
+#ifdef USE_HSI
+  /* Enable HSI */
+  RCC->CR |= ((uint32_t)RCC_CR_HSION);
+
+  /* Wait till HSI is ready and if Time out is reached exit */
+  do
+  {
+    HSEStatus = RCC->CR & RCC_CR_HSIRDY;
+    StartUpCounter++;
+  } while((HSEStatus == 0) && (StartUpCounter != HSE_STARTUP_TIMEOUT));
+
+  if ((RCC->CR & RCC_CR_HSIRDY) != RESET)
+  {
+    HSEStatus = (uint32_t)0x01;
+  }
+  else
+  {
+    HSEStatus = (uint32_t)0x00;
+  }
+#else
+
   /* Enable HSE */
   RCC->CR |= ((uint32_t)RCC_CR_HSEON);
  
@@ -364,6 +398,7 @@ static void SetSysClock(void)
   {
     HSEStatus = (uint32_t)0x00;
   }
+#endif
 
   if (HSEStatus == (uint32_t)0x01)
   {
@@ -382,7 +417,12 @@ static void SetSysClock(void)
 
     /* Configure the main PLL */
     RCC->PLLCFGR = PLL_M | (PLL_N << 6) | (((PLL_P >> 1) -1) << 16) |
-                   (RCC_PLLCFGR_PLLSRC_HSE) | (PLL_Q << 24);
+#ifdef USE_HSI
+                   (RCC_PLLCFGR_PLLSRC_HSI) |
+#else
+                   (RCC_PLLCFGR_PLLSRC_HSE) |
+#endif
+                   (PLL_Q << 24);
 
     /* Enable the main PLL */
     RCC->CR |= RCC_CR_PLLON;

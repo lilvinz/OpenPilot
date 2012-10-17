@@ -64,6 +64,9 @@ MODULES += FirmwareIAP
 MODULES += CameraStab
 MODULES += Telemetry
 #MODULES += OveroSync
+MODULES += TxPID
+#MODULES += Fault
+MODULES += AutoTune
 
 # Paths
 OPSYSTEM = ./System
@@ -77,11 +80,14 @@ PIOSINC = $(PIOS)/inc
 OPMODULEDIR = ../Modules
 FLIGHTLIB = ../Libraries
 FLIGHTLIBINC = ../Libraries/inc
+MATHLIB = ../Libraries/math
+MATHLIBINC = ../Libraries/math
 PIOSSTM32F4XX = $(PIOS)/STM32F4xx
 PIOSCOMMON = $(PIOS)/Common
 PIOSBOARDS = $(PIOS)/Boards
 PIOSCOMMONLIB = $(PIOSCOMMON)/Libraries
 APPLIBDIR = $(PIOSSTM32F4XX)/Libraries
+DOSFSDIR  = $(PIOSCOMMONLIB)/dosfs
 STMLIBDIR = $(APPLIBDIR)
 STMSPDDIR = $(STMLIBDIR)/STM32F4xx_StdPeriph_Driver
 STMSPDSRCDIR = $(STMSPDDIR)/src
@@ -106,7 +112,7 @@ include $(PIOSCOMMONLIB)/msheap/library.mk
 SRC += ${foreach MOD, ${MODULES}, ${wildcard ${OPMODULEDIR}/${MOD}/*.c}}
 ## OPENPILOT CORE:
 SRC += ${OPMODULEDIR}/System/systemmod.c
-SRC += $(OPSYSTEM)/discovery.c
+SRC += $(OPSYSTEM)/discoveryf4.c
 SRC += $(OPSYSTEM)/pios_board.c
 SRC += $(OPSYSTEM)/pios_usb_board_data.c
 SRC += $(OPSYSTEM)/alarms.c
@@ -121,9 +127,11 @@ SRC += $(OPSYSTEM)/cm3_fault_handlers.c
 
 SRC += $(FLIGHTLIB)/CoordinateConversions.c
 SRC += $(FLIGHTLIB)/fifo_buffer.c
-SRC += $(FLIGHTLIB)/WorldMagModel.c
-SRC += $(FLIGHTLIB)/insgps13state.c
+#SRC += $(FLIGHTLIB)/WorldMagModel.c
+#SRC += $(FLIGHTLIB)/insgps13state.c
 SRC += $(FLIGHTLIB)/taskmonitor.c
+SRC += $(MATHLIB)/sin_lookup.c
+SRC += $(MATHLIB)/pid.c
 
 ## PIOS Hardware (STM32F4xx)
 include $(PIOS)/STM32F4xx/library.mk
@@ -183,11 +191,13 @@ EXTRAINCDIRS  += $(OPUAVOBJ)
 EXTRAINCDIRS  += $(OPUAVOBJINC)
 EXTRAINCDIRS  += $(UAVOBJSYNTHDIR)
 EXTRAINCDIRS  += $(FLIGHTLIBINC)
+EXTRAINCDIRS  += $(MATHLIBINC)
 EXTRAINCDIRS  += $(PIOSSTM32F4XX)
 EXTRAINCDIRS  += $(PIOSCOMMON)
 EXTRAINCDIRS  += $(PIOSBOARDS)
 EXTRAINCDIRS  += $(STMSPDINCDIR)
 EXTRAINCDIRS  += $(CMSISDIR)
+EXTRAINCDIRS  += $(DOSFSDIR)
 EXTRAINCDIRS  += $(OPUAVSYNTHDIR)
 EXTRAINCDIRS  += $(BOOTINC)
 EXTRAINCDIRS  += $(PYMITEINC)
@@ -311,6 +321,7 @@ endif
 
 CFLAGS += -Wall
 #CFLAGS += -Werror
+CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -Wa,-adhlns=$(addprefix $(OUTDIR)/, $(notdir $(addsuffix .lst, $(basename $<))))
 # Compiler flags to generate dependency files:
 CFLAGS += -MD -MP -MF $(OUTDIR)/dep/$(@F).d

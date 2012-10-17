@@ -52,6 +52,8 @@ HEADERS += $$UAVOBJECT_SYNTHETICS/accessorydesired.h \
     $$UAVOBJECT_SYNTHETICS/gpsposition.h \
     $$UAVOBJECT_SYNTHETICS/gpstime.h \
     $$UAVOBJECT_SYNTHETICS/gpssatellites.h \
+    $$UAVOBJECT_SYNTHETICS/gpssettings.h \
+    $$UAVOBJECT_SYNTHETICS/gpsvelocity.h \
     $$UAVOBJECT_SYNTHETICS/positionactual.h \
     $$UAVOBJECT_SYNTHETICS/flightbatterystate.h \
     $$UAVOBJECT_SYNTHETICS/homelocation.h \
@@ -61,6 +63,8 @@ HEADERS += $$UAVOBJECT_SYNTHETICS/accessorydesired.h \
     $$UAVOBJECT_SYNTHETICS/velocityactual.h \
     $$UAVOBJECT_SYNTHETICS/guidancesettings.h \
     $$UAVOBJECT_SYNTHETICS/positiondesired.h \
+    $$UAVOBJECT_SYNTHETICS/relaytuning.h \
+    $$UAVOBJECT_SYNTHETICS/relaytuningsettings.h \
     $$UAVOBJECT_SYNTHETICS/ratedesired.h \
     $$UAVOBJECT_SYNTHETICS/firmwareiapobj.h \
     $$UAVOBJECT_SYNTHETICS/i2cstats.h \
@@ -81,7 +85,10 @@ HEADERS += $$UAVOBJECT_SYNTHETICS/accessorydesired.h \
     $$UAVOBJECT_SYNTHETICS/cameradesired.h \
     $$UAVOBJECT_SYNTHETICS/faultsettings.h \
     $$UAVOBJECT_SYNTHETICS/pipxsettings.h \
-    $$UAVOBJECT_SYNTHETICS/pipxstatus.h
+    $$UAVOBJECT_SYNTHETICS/pipxstatus.h \
+    $$UAVOBJECT_SYNTHETICS/waypoint.h \
+    $$UAVOBJECT_SYNTHETICS/waypointactive.h \
+    $$UAVOBJECT_SYNTHETICS/pathaction.h
 
 SOURCES += $$UAVOBJECT_SYNTHETICS/accessorydesired.cpp \
     $$UAVOBJECT_SYNTHETICS/baroaltitude.cpp \
@@ -112,6 +119,8 @@ SOURCES += $$UAVOBJECT_SYNTHETICS/accessorydesired.cpp \
     $$UAVOBJECT_SYNTHETICS/gpsposition.cpp \
     $$UAVOBJECT_SYNTHETICS/gpstime.cpp \
     $$UAVOBJECT_SYNTHETICS/gpssatellites.cpp \
+    $$UAVOBJECT_SYNTHETICS/gpssettings.cpp \
+    $$UAVOBJECT_SYNTHETICS/gpsvelocity.cpp \
     $$UAVOBJECT_SYNTHETICS/positionactual.cpp \
     $$UAVOBJECT_SYNTHETICS/flightbatterystate.cpp \
     $$UAVOBJECT_SYNTHETICS/homelocation.cpp \
@@ -121,6 +130,8 @@ SOURCES += $$UAVOBJECT_SYNTHETICS/accessorydesired.cpp \
     $$UAVOBJECT_SYNTHETICS/velocityactual.cpp \
     $$UAVOBJECT_SYNTHETICS/guidancesettings.cpp \
     $$UAVOBJECT_SYNTHETICS/positiondesired.cpp \
+    $$UAVOBJECT_SYNTHETICS/relaytuningsettings.cpp \
+    $$UAVOBJECT_SYNTHETICS/relaytuning.cpp \
     $$UAVOBJECT_SYNTHETICS/ratedesired.cpp \
     $$UAVOBJECT_SYNTHETICS/firmwareiapobj.cpp \
     $$UAVOBJECT_SYNTHETICS/i2cstats.cpp \
@@ -142,4 +153,7 @@ SOURCES += $$UAVOBJECT_SYNTHETICS/accessorydesired.cpp \
     $$UAVOBJECT_SYNTHETICS/cameradesired.cpp \
     $$UAVOBJECT_SYNTHETICS/faultsettings.cpp \
     $$UAVOBJECT_SYNTHETICS/pipxsettings.cpp \
-    $$UAVOBJECT_SYNTHETICS/pipxstatus.cpp
+    $$UAVOBJECT_SYNTHETICS/pipxstatus.cpp \
+    $$UAVOBJECT_SYNTHETICS/waypoint.cpp \
+    $$UAVOBJECT_SYNTHETICS/waypointactive.cpp \
+    $$UAVOBJECT_SYNTHETICS/pathaction.cpp

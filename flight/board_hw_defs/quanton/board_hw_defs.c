@@ -34,7 +34,7 @@
 
 #include <pios_led_priv.h>
 static const struct pios_led pios_leds[] = {
-	[PIOS_LED_BLUE] = {
+	[PIOS_LED_RED] = {
 		.pin = {
 			.gpio = GPIOC,
 			.init = {
@@ -46,9 +46,9 @@ static const struct pios_led pios_leds[] = {
 			},
 		},
 		.remap = 0,
-		.active_high = true,
+		.active_high = false,
 	},
-	[PIOS_LED_RED] = {
+	[PIOS_LED_BLUE] = {
 		.pin = {
 			.gpio = GPIOC,
 			.init = {
@@ -60,7 +60,7 @@ static const struct pios_led pios_leds[] = {
 			},
 		},
 		.remap = 0,
-		.active_high = true,
+		.active_high = false,
 	},
 };
 
