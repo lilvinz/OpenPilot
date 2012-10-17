@@ -127,9 +127,11 @@ SRC += $(OPSYSTEM)/cm3_fault_handlers.c
 
 SRC += $(FLIGHTLIB)/CoordinateConversions.c
 SRC += $(FLIGHTLIB)/fifo_buffer.c
-SRC += $(FLIGHTLIB)/WorldMagModel.c
-SRC += $(FLIGHTLIB)/insgps13state.c
+#SRC += $(FLIGHTLIB)/WorldMagModel.c
+#SRC += $(FLIGHTLIB)/insgps13state.c
 SRC += $(FLIGHTLIB)/taskmonitor.c
+SRC += $(MATHLIB)/sin_lookup.c
+SRC += $(MATHLIB)/pid.c
 
 ## PIOS Hardware (STM32F4xx)
 include $(PIOS)/STM32F4xx/library.mk
@@ -147,8 +149,6 @@ SRC += $(PIOSCOMMON)/printf-stdarg.c
 SRC += $(PIOSCOMMON)/pios_usb_desc_hid_cdc.c
 SRC += $(PIOSCOMMON)/pios_usb_desc_hid_only.c
 SRC += $(PIOSCOMMON)/pios_usb_util.c
-SRC += $(MATHLIB)/sin_lookup.c
-SRC += $(MATHLIB)/pid.c
 
 
 include ./UAVObjects.inc
