@@ -188,13 +188,13 @@ static const struct flashfs_cfg flashfs_m25p_cfg = {
 	.obj_magic = 0x3015A371,
 	.obj_table_start = 0x00000010,
 	.obj_table_end = 0x00010000,
-	.sector_size = 0x00010000,
-	.chip_size = 0x00200000,
+	.sector_size = 0x00001000,			//4kb
+	.chip_size = 0x00400000,			//32MBit
 };
 
 static const struct pios_flash_jedec_cfg flash_m25p_cfg = {
-	.sector_erase = 0xD8,
-	.chip_erase = 0xC7
+	.sector_erase = 0x20,
+	.chip_erase = 0x60
 };
 #elif defined(PIOS_INCLUDE_FLASH_INTERNAL)
 /*
