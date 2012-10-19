@@ -93,7 +93,7 @@ static const struct pios_spi_cfg pios_spi_flash_cfg = {
 		.SPI_CRCPolynomial     = 7,
 		.SPI_CPOL              = SPI_CPOL_High,
 		.SPI_CPHA              = SPI_CPHA_2Edge,
-		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_4,	//168MHz / 4 == 42MHz
+		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_2,	//@ APB1 PCLK1 42MHz / 2 == 21MHz
 	},
 	.use_crc = false,
 	.dma = {
@@ -218,7 +218,7 @@ static const struct pios_spi_cfg pios_spi_gyro_accel_cfg = {
 		.SPI_CRCPolynomial     = 7,
 		.SPI_CPOL              = SPI_CPOL_High,
 		.SPI_CPHA              = SPI_CPHA_2Edge,
-		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8,
+		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_16,		//@ APB1 PCLK1 42MHz / 16 == 2.6MHz
 	},
 	.use_crc = false,
 	.dma = {
@@ -521,7 +521,7 @@ static const struct pios_usart_cfg pios_usart3_dsm_cfg = {
 	},
 	.irq = {
 		.init = {
-			.NVIC_IRQChannel = USART2_IRQn,
+			.NVIC_IRQChannel = USART3_IRQn,
 			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
 			.NVIC_IRQChannelSubPriority = 0,
 			.NVIC_IRQChannelCmd = ENABLE,
@@ -536,7 +536,7 @@ static const struct pios_usart_cfg pios_usart3_dsm_cfg = {
 			.GPIO_OType = GPIO_OType_PP,
 			.GPIO_PuPd  = GPIO_PuPd_UP
 		},
-		.pin_source = GPIO_PinSource3,
+		.pin_source = GPIO_PinSource11,
 	},
 };
 
