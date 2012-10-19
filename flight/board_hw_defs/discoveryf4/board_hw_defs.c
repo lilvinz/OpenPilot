@@ -121,7 +121,7 @@ static const struct pios_spi_cfg pios_spi_flash_cfg = {
 		.SPI_CRCPolynomial     = 7,
 		.SPI_CPOL              = SPI_CPOL_High,
 		.SPI_CPHA              = SPI_CPHA_2Edge,
-		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_2,		//@ APB1 PCLK1 42MHz / 2 == 21MHz
+		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_4,	//168MHz / 4 == 42MHz
 	},
 	.use_crc = false,
 	.dma = {
@@ -680,9 +680,9 @@ void PIOS_RTC_IRQ_Handler (void)
 
 #include "pios_tim_priv.h"
 
-//Timers used for inputs (1, 2, 3, 5)
+//Timers used for inputs (2, 4, 8, 9)
 
-static const TIM_TimeBaseInitTypeDef tim_2_3_5_time_base = {
+static const TIM_TimeBaseInitTypeDef tim_2_4_time_base = {
 	.TIM_Prescaler = (PIOS_PERIPHERAL_APB1_CLOCK / 1000000) - 1,
 	.TIM_ClockDivision = TIM_CKD_DIV1,
 	.TIM_CounterMode = TIM_CounterMode_Up,
@@ -690,7 +690,7 @@ static const TIM_TimeBaseInitTypeDef tim_2_3_5_time_base = {
 	.TIM_RepetitionCounter = 0x0000,
 };
 
-static const TIM_TimeBaseInitTypeDef tim_1_time_base = {
+static const TIM_TimeBaseInitTypeDef tim_8_9_time_base = {
 	.TIM_Prescaler = (PIOS_PERIPHERAL_APB2_CLOCK / 1000000) - 1,
 	.TIM_ClockDivision = TIM_CKD_DIV1,
 	.TIM_CounterMode = TIM_CounterMode_Up,
@@ -700,7 +700,7 @@ static const TIM_TimeBaseInitTypeDef tim_1_time_base = {
 
 static const struct pios_tim_clock_cfg tim_2_cfg = {
 	.timer = TIM2,
-	.time_base_init = &tim_2_3_5_time_base,
+	.time_base_init = &tim_2_4_time_base,
 	.irq = {
 		.init = {
 			.NVIC_IRQChannel                   = TIM2_IRQn,
@@ -711,76 +711,9 @@ static const struct pios_tim_clock_cfg tim_2_cfg = {
 	},
 };
 
-static const struct pios_tim_clock_cfg tim_3_cfg = {
-	.timer = TIM3,
-	.time_base_init = &tim_2_3_5_time_base,
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel                   = TIM3_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
-			.NVIC_IRQChannelSubPriority        = 0,
-			.NVIC_IRQChannelCmd                = ENABLE,
-		},
-	},
-};
-
-static const struct pios_tim_clock_cfg tim_5_cfg = {
-	.timer = TIM5,
-	.time_base_init = &tim_2_3_5_time_base,
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel                   = TIM5_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
-			.NVIC_IRQChannelSubPriority        = 0,
-			.NVIC_IRQChannelCmd                = ENABLE,
-		},
-	},
-};
-
-static const struct pios_tim_clock_cfg tim_1_cfg = {
-	.timer = TIM1,
-	.time_base_init = &tim_1_time_base,
-	.irq = {
-		.init = {
-			.NVIC_IRQChannel                   = TIM1_CC_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
-			.NVIC_IRQChannelSubPriority        = 0,
-			.NVIC_IRQChannelCmd                = ENABLE,
-		},
-	},
-	.irq2 = {
-		.init = {
-			.NVIC_IRQChannel                   = TIM1_UP_TIM10_IRQn,
-			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
-			.NVIC_IRQChannelSubPriority        = 0,
-			.NVIC_IRQChannelCmd                = ENABLE,
-		},
-	},
-};
-
-// Timers used for outputs (4, 8, 12, 13)
-
-// Set up timers that only have inputs on APB1
-static const TIM_TimeBaseInitTypeDef tim_4_12_13_time_base = {
-	.TIM_Prescaler = (PIOS_PERIPHERAL_APB1_CLOCK / 1000000) - 1,
-	.TIM_ClockDivision = TIM_CKD_DIV1,
-	.TIM_CounterMode = TIM_CounterMode_Up,
-	.TIM_Period = ((1000000 / PIOS_SERVO_UPDATE_HZ) - 1),
-	.TIM_RepetitionCounter = 0x0000,
-};
-
-// Set up timers that only have inputs on APB2
-static const TIM_TimeBaseInitTypeDef tim_8_time_base = {
-	.TIM_Prescaler = (PIOS_PERIPHERAL_APB2_CLOCK / 1000000) - 1,
-	.TIM_ClockDivision = TIM_CKD_DIV1,
-	.TIM_CounterMode = TIM_CounterMode_Up,
-	.TIM_Period = ((1000000 / PIOS_SERVO_UPDATE_HZ) - 1),
-	.TIM_RepetitionCounter = 0x0000,
-};
-
 static const struct pios_tim_clock_cfg tim_4_cfg = {
 	.timer = TIM4,
-	.time_base_init = &tim_4_12_13_time_base,
+	.time_base_init = &tim_2_4_time_base,
 	.irq = {
 		.init = {
 			.NVIC_IRQChannel                   = TIM4_IRQn,
@@ -791,23 +724,18 @@ static const struct pios_tim_clock_cfg tim_4_cfg = {
 	},
 };
 
-static const struct pios_tim_clock_cfg tim_12_cfg = {
-	.timer = TIM12,
-	.time_base_init = &tim_4_12_13_time_base,
+static const struct pios_tim_clock_cfg tim_8_cfg = {
+	.timer = TIM8,
+	.time_base_init = &tim_8_9_time_base,
 	.irq = {
 		.init = {
-			.NVIC_IRQChannel                   = TIM8_BRK_TIM12_IRQn,
+			.NVIC_IRQChannel                   = TIM8_CC_IRQn,
 			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
 			.NVIC_IRQChannelSubPriority        = 0,
 			.NVIC_IRQChannelCmd                = ENABLE,
 		},
 	},
-};
-
-static const struct pios_tim_clock_cfg tim_13_cfg = {
-	.timer = TIM13,
-	.time_base_init = &tim_4_12_13_time_base,
-	.irq = {
+	.irq2 = {
 		.init = {
 			.NVIC_IRQChannel                   = TIM8_UP_TIM13_IRQn,
 			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
@@ -817,12 +745,60 @@ static const struct pios_tim_clock_cfg tim_13_cfg = {
 	},
 };
 
-static const struct pios_tim_clock_cfg tim_8_cfg = {
-	.timer = TIM8,
-	.time_base_init = &tim_8_time_base,
+static const struct pios_tim_clock_cfg tim_9_cfg = {
+	.timer = TIM9,
+	.time_base_init = &tim_8_9_time_base,
 	.irq = {
 		.init = {
-			.NVIC_IRQChannel                   = TIM8_IRQn,
+			.NVIC_IRQChannel                   = TIM1_BRK_TIM9_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
+			.NVIC_IRQChannelSubPriority        = 0,
+			.NVIC_IRQChannelCmd                = ENABLE,
+		},
+	},
+};
+
+
+
+// Timers used for outputs (1 and 3)
+
+// Set up timers that only have inputs on APB1
+static const TIM_TimeBaseInitTypeDef tim_3_time_base = {
+	.TIM_Prescaler = (PIOS_PERIPHERAL_APB1_CLOCK / 1000000) - 1,
+	.TIM_ClockDivision = TIM_CKD_DIV1,
+	.TIM_CounterMode = TIM_CounterMode_Up,
+	.TIM_Period = ((1000000 / PIOS_SERVO_UPDATE_HZ) - 1),
+	.TIM_RepetitionCounter = 0x0000,
+};
+
+// Set up timers that only have inputs on APB2
+static const TIM_TimeBaseInitTypeDef tim_1_time_base = {
+	.TIM_Prescaler = (PIOS_PERIPHERAL_APB2_CLOCK / 1000000) - 1,
+	.TIM_ClockDivision = TIM_CKD_DIV1,
+	.TIM_CounterMode = TIM_CounterMode_Up,
+	.TIM_Period = ((1000000 / PIOS_SERVO_UPDATE_HZ) - 1),
+	.TIM_RepetitionCounter = 0x0000,
+};
+
+static const struct pios_tim_clock_cfg tim_1_cfg = {
+	.timer = TIM1,
+	.time_base_init = &tim_1_time_base,
+	.irq = {
+		.init = {
+			.NVIC_IRQChannel                   = TIM1_UP_TIM10_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
+			.NVIC_IRQChannelSubPriority        = 0,
+			.NVIC_IRQChannelCmd                = ENABLE,
+		},
+	},
+};
+
+static const struct pios_tim_clock_cfg tim_3_cfg = {
+	.timer = TIM3,
+	.time_base_init = &tim_3_time_base,
+	.irq = {
+		.init = {
+			.NVIC_IRQChannel                   = TIM3_IRQn,
 			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_MID,
 			.NVIC_IRQChannelSubPriority        = 0,
 			.NVIC_IRQChannelCmd                = ENABLE,
@@ -838,14 +814,14 @@ static const struct pios_tim_clock_cfg tim_8_cfg = {
 
 /*
  * 	OUTPUTS
-	TIM4_CH2 (PB7)
-	TIM4_CH3 (PB8)
-	TIM4_CH4 (PB9)
-	TIM8_CH3 (PC8)
-	TIM8_CH4 (PC9)
-	TIM12_CH1 (PB14)
-	TIM12_CH2 (PB15)
-	TIM13_CH1 (PA6)
+	TIM1_CH1 (PE9)
+	TIM1_CH2 (PE11)
+	TIM1_CH3 (PE13)
+	TIM1_CH4 (PE14)
+	TIM3_CH1 (PB4)
+	TIM3_CH2 (PB5)
+	TIM3_CH3 (PB0)
+	TIM3_CH4 (PB1)
  */
 
 static const struct pios_tim_channel pios_tim_servoport_all_pins[] = {
