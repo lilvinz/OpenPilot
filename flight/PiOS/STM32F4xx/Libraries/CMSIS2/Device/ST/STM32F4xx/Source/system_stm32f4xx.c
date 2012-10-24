@@ -357,28 +357,6 @@ static void SetSysClock(void)
 /*            PLL (clocked by HSE) used as System clock source                */
 /******************************************************************************/
   __IO uint32_t StartUpCounter = 0, HSEStatus = 0;
-  
-
-#ifdef USE_HSI
-  /* Enable HSI */
-  RCC->CR |= ((uint32_t)RCC_CR_HSION);
-
-  /* Wait till HSI is ready and if Time out is reached exit */
-  do
-  {
-    HSEStatus = RCC->CR & RCC_CR_HSIRDY;
-    StartUpCounter++;
-  } while((HSEStatus == 0) && (StartUpCounter != HSE_STARTUP_TIMEOUT));
-
-  if ((RCC->CR & RCC_CR_HSIRDY) != RESET)
-  {
-    HSEStatus = (uint32_t)0x01;
-  }
-  else
-  {
-    HSEStatus = (uint32_t)0x00;
-  }
-#else
 
   /* Enable HSE */
   RCC->CR |= ((uint32_t)RCC_CR_HSEON);
@@ -398,7 +376,6 @@ static void SetSysClock(void)
   {
     HSEStatus = (uint32_t)0x00;
   }
-#endif
 
   if (HSEStatus == (uint32_t)0x01)
   {
@@ -416,13 +393,7 @@ static void SetSysClock(void)
     RCC->CFGR |= RCC_CFGR_PPRE1_DIV4;
 
     /* Configure the main PLL */
-    RCC->PLLCFGR = PLL_M | (PLL_N << 6) | (((PLL_P >> 1) -1) << 16) |
-#ifdef USE_HSI
-                   (RCC_PLLCFGR_PLLSRC_HSI) |
-#else
-                   (RCC_PLLCFGR_PLLSRC_HSE) |
-#endif
-                   (PLL_Q << 24);
+    RCC->PLLCFGR = PLL_M | (PLL_N << 6) | (((PLL_P >> 1) -1) << 16) | (RCC_PLLCFGR_PLLSRC_HSE) | (PLL_Q << 24);
 
     /* Enable the main PLL */
     RCC->CR |= RCC_CR_PLLON;
@@ -447,6 +418,11 @@ static void SetSysClock(void)
   else
   { /* If HSE fails to start-up, the application will have wrong clock
          configuration. User can add here some code to deal with this error */
+
+    /* Go to infinite loop */
+    while (1)
+    {
+    }
   }
 
 }
