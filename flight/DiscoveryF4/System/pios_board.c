@@ -554,10 +554,8 @@ void PIOS_Board_Init(void) {
 			break;
 		case HWSETTINGS_RV_RCVRPORT_PPMOUTPUTS:
 		case HWSETTINGS_RV_RCVRPORT_OUTPUTS:
-			//PIOS_Servo_Init(&pios_servo_rcvr_cfg);
-			//TODO: Prepare the configurations on board_hw_defs and handle here:
 #ifdef PIOS_INCLUDE_SERVO
-			PIOS_Servo_Init(&pios_servo_cfg);
+			PIOS_Servo_Init(&pios_servo_rcvr_cfg);
 #endif
 			break;
 	}
