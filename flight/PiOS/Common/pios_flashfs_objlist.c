@@ -140,7 +140,7 @@ static int32_t PIOS_FLASHFS_ClearObjectTableHeader()
 	if (PIOS_Flash_Jedec_WriteData(0, (uint8_t *)&cfg->table_magic, sizeof(cfg->table_magic)) != 0)
 		return -1;
 
-	static uint32_t object_table_magic;
+	uint32_t object_table_magic;
 	PIOS_Flash_Jedec_ReadData(0, (uint8_t *)&object_table_magic, sizeof(object_table_magic));
 	if(object_table_magic != cfg->table_magic)
 		return -1;
