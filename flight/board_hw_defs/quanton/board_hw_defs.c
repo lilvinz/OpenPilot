@@ -1274,14 +1274,14 @@ static const struct pios_tim_clock_cfg tim_12_cfg = {
 
 /*
  * 	OUTPUTS
-	TIM3_CH1 (PB4)
-	TIM3_CH2 (PB5)
-	TIM3_CH3 (PB0)
-	TIM3_CH4 (PB1)
-	TIM12_CH1 (PB14)
-	TIM12_CH2 (PB15)
-	TIM10_CH1 (PB8)
-	TIM11_CH1 (PB9)
+	1: TIM3_CH1 (PB4)
+	2: TIM3_CH2 (PB5)
+	3: TIM3_CH3 (PB0)
+	4: TIM3_CH4 (PB1)
+	5: TIM12_CH1 (PB14)
+	6: TIM12_CH2 (PB15)
+	7: TIM10_CH1 (PB8)
+	8: TIM11_CH1 (PB9)
  */
 
 static const struct pios_tim_channel pios_tim_servoport_all_pins[] = {
@@ -1418,17 +1418,21 @@ static const struct pios_tim_channel pios_tim_servoport_all_pins[] = {
 
 /*
  * 	OUTPUTS with extra outputs on receiverport
-	TIM3_CH1 (PB4)
-	TIM3_CH2 (PB5)
-	TIM3_CH3 (PB0)
-	TIM3_CH4 (PB1)
-	TIM12_CH1 (PB14)
-	TIM12_CH2 (PB15)
-	TIM10_CH1 (PB8)
-	TIM11_CH1 (PB9)
-
-	TIM5_CH1 (PA0) (IN7)
-	TIM5_CH2 (PA1) (IN8)
+	1:  TIM3_CH1  (PB4)
+	2:  TIM3_CH2  (PB5)
+	3:  TIM3_CH3  (PB0)
+	4:  TIM3_CH4  (PB1)
+	5:  TIM12_CH1 (PB14)
+	6:  TIM12_CH2 (PB15)
+	7:  TIM10_CH1 (PB8)
+	8:  TIM11_CH1 (PB9)
+	9:  TIM8_CH1  (PC6)		(IN2)
+	10: TIM8_CH2  (PC7)		(IN3)
+	11: TIM8_CH3  (PC8)		(IN4)
+	12: TIM2_CH1  (PA15)	(IN5)
+	13: TIM2_CH2  (PB3)		(IN6)
+	14: TIM5_CH1  (PA0)		(IN7)
+	15: TIM5_CH2  (PA1)		(IN8)
  */
 
 static const struct pios_tim_channel pios_tim_servoport_rcvrport_pins[] = {
@@ -1560,7 +1564,6 @@ static const struct pios_tim_channel pios_tim_servoport_rcvrport_pins[] = {
 			.pin_source = GPIO_PinSource9,
 		},
 	},
-	//reuse IN2 - IN8 as output
 	{
 		.timer = TIM8,
 		.timer_chan = TIM_Channel_1,
@@ -1713,18 +1716,18 @@ const struct pios_servo_cfg pios_servo_rcvr_cfg = {
 	.num_channels = NELEMENTS(pios_tim_servoport_rcvrport_pins),
 };
 
-#endif	/* PIOS_INCLUDE_SERVO && PIOS_INCLUDE_TIM */*
+#endif	/* PIOS_INCLUDE_SERVO && PIOS_INCLUDE_TIM */
 
 /*
  * 	INPUTS
-	TIM1_CH3 (PA10)
-	TIM8_CH1 (PC6)
-	TIM8_CH2 (PC7)
-	TIM8_CH3 (PC8)
-	TIM2_CH1 (PA15)
-	TIM2_CH2 (PB3)
-	TIM5_CH1 (PA0)
-	TIM5_CH2 (PA1)
+	1: TIM1_CH3 (PA10)
+	2: TIM8_CH1 (PC6)
+	3: TIM8_CH2 (PC7)
+	4: TIM8_CH3 (PC8)
+	5: TIM2_CH1 (PA15)
+	6: TIM2_CH2 (PB3)
+	7: TIM5_CH1 (PA0)
+	8: TIM5_CH2 (PA1)
  */
 static const struct pios_tim_channel pios_tim_rcvrport_all_channels[] = {
 	{
