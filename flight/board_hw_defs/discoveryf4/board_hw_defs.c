@@ -813,14 +813,14 @@ static const struct pios_tim_clock_cfg tim_3_cfg = {
 
 /*
  * 	OUTPUTS
-	TIM1_CH1 (PE9)
-	TIM1_CH2 (PE11)
-	TIM1_CH3 (PE13)
-	TIM1_CH4 (PE14)
-	TIM3_CH1 (PB4)
-	TIM3_CH2 (PB5)
-	TIM3_CH3 (PB0)
-	TIM3_CH4 (PB1)
+	1: TIM1_CH1 (PE9)
+	2: TIM1_CH2 (PE11)
+	3: TIM1_CH3 (PE13)
+	4: TIM1_CH4 (PE14)
+	5: TIM3_CH1 (PB4)
+	6: TIM3_CH2 (PB5)
+	7: TIM3_CH3 (PB0)
+	8: TIM3_CH4 (PB1)
  */
 
 static const struct pios_tim_channel pios_tim_servoport_all_pins[] = {
@@ -958,22 +958,21 @@ static const struct pios_tim_channel pios_tim_servoport_all_pins[] = {
 
 /*
  * 	OUTPUTS with extra outputs on recieverport
-	TIM1_CH1 (PE9)
-	TIM1_CH2 (PE11)
-	TIM1_CH3 (PE13)
-	TIM1_CH4 (PE14)
-	TIM3_CH1 (PB4)
-	TIM3_CH2 (PB5)
-	TIM3_CH3 (PB0)
-	TIM3_CH4 (PB1)
-
-	TIM2_CH1 (PA15)	(IN2)
-	TIM2_CH2 (PA1)	(IN3)
-	TIM8_CH1 (PC6)	(IN4)
-	TIM8_CH3 (PC8)	(IN5)
-	TIM8_CH4 (PC9)	(IN6)
-	TIM9_CH1 (PE5)	(IN7)
-	TIM9_CH2 (PE6)	(IN8)
+	1:  TIM1_CH1 (PE9)
+	2:  TIM1_CH2 (PE11)
+	3:  TIM1_CH3 (PE13)
+	4:  TIM1_CH4 (PE14)
+	5:  TIM3_CH1 (PB4)
+	6:  TIM3_CH2 (PB5)
+	7:  TIM3_CH3 (PB0)
+	8:  TIM3_CH4 (PB1)
+	9:  TIM2_CH1 (PA15)	(IN2)
+	10: TIM2_CH2 (PA1)	(IN3)
+	11: TIM8_CH1 (PC6)	(IN4)
+	12: TIM8_CH3 (PC8)	(IN5)
+	13: TIM8_CH4 (PC9)	(IN6)
+	14: TIM9_CH1 (PE5)	(IN7)
+	15: TIM9_CH2 (PE6)	(IN8)
  */
 
 static const struct pios_tim_channel pios_tim_servoport_rcvrport_pins[] = {
@@ -1260,14 +1259,14 @@ const struct pios_servo_cfg pios_servo_rcvr_cfg = {
 
 /*
  * 	INPUTS
-	TIM4_CH3 (PB8)
-	TIM2_CH1 (PA15)
-	TIM2_CH2 (PA1)
-	TIM8_CH1 (PC6)
-	TIM8_CH3 (PC8)
-	TIM8_CH4 (PC9)
-	TIM9_CH1 (PE5)
-	TIM9_CH2 (PE6)
+	1: TIM4_CH3 (PB8)
+	2: TIM2_CH1 (PA15)
+	3: TIM2_CH2 (PA1)
+	4: TIM8_CH1 (PC6)
+	5: TIM8_CH3 (PC8)
+	6: TIM8_CH4 (PC9)
+	7: TIM9_CH1 (PE5)
+	8: TIM9_CH2 (PE6)
  */
 static const struct pios_tim_channel pios_tim_rcvrport_all_channels[] = {
 	{
