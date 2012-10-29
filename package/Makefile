@@ -36,7 +36,7 @@ CLEAN_FLIGHT := YES
 endif
 
 # Set up targets
-ALL_BOARDS        := coptercontrol pipxtreme
+ALL_BOARDS        := coptercontrol pipxtreme discoveryf3 discoveryf4 quanton
 FW_TARGETS        := $(addprefix fw_, $(ALL_BOARDS))
 FW_TARGETS_TOOLS  := $(addprefix fw_, $(ALL_BOARDS))
 BL_TARGETS        := $(addprefix bl_, $(ALL_BOARDS))
