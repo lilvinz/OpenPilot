@@ -280,6 +280,7 @@ static const struct pios_spi_cfg pios_spi_gyro_accel_cfg = {
 			.GPIO_OType = GPIO_OType_PP,
 			.GPIO_PuPd = GPIO_PuPd_NOPULL
 		},
+		.pin_source = GPIO_PinSource5,
 	},
 	.miso = {
 		.gpio = GPIOA,
@@ -290,6 +291,7 @@ static const struct pios_spi_cfg pios_spi_gyro_accel_cfg = {
 			.GPIO_OType = GPIO_OType_PP,
 			.GPIO_PuPd = GPIO_PuPd_NOPULL
 		},
+		.pin_source = GPIO_PinSource6,
 	},
 	.mosi = {
 		.gpio = GPIOA,
@@ -300,6 +302,7 @@ static const struct pios_spi_cfg pios_spi_gyro_accel_cfg = {
 			.GPIO_OType = GPIO_OType_PP,
 			.GPIO_PuPd = GPIO_PuPd_NOPULL
 		},
+		.pin_source = GPIO_PinSource7,
 	},
 	.slave_count = 1,
 	.ssel = { {
@@ -1324,13 +1327,13 @@ static const struct pios_tim_channel pios_tim_servoport_all_pins[] = {
 		.pin = {
 			.gpio = GPIOB,
 			.init = {
-				.GPIO_Pin = GPIO_Pin_5,
+				.GPIO_Pin = GPIO_Pin_0,
 				.GPIO_Speed = GPIO_Speed_2MHz,
 				.GPIO_Mode  = GPIO_Mode_AF,
 				.GPIO_OType = GPIO_OType_PP,
 				.GPIO_PuPd  = GPIO_PuPd_UP
 			},
-			.pin_source = GPIO_PinSource5,
+			.pin_source = GPIO_PinSource0,
 		},
 	},
 	{
@@ -1475,13 +1478,13 @@ static const struct pios_tim_channel pios_tim_servoport_rcvrport_pins[] = {
 		.pin = {
 			.gpio = GPIOB,
 			.init = {
-				.GPIO_Pin = GPIO_Pin_5,
+				.GPIO_Pin = GPIO_Pin_0,
 				.GPIO_Speed = GPIO_Speed_2MHz,
 				.GPIO_Mode  = GPIO_Mode_AF,
 				.GPIO_OType = GPIO_OType_PP,
 				.GPIO_PuPd  = GPIO_PuPd_UP
 			},
-			.pin_source = GPIO_PinSource5,
+			.pin_source = GPIO_PinSource0,
 		},
 	},
 	{
@@ -1940,7 +1943,7 @@ static const struct pios_usb_cfg pios_usb_main_cfg = {
 		.init = {
 			.GPIO_Pin   = GPIO_Pin_9,
 			.GPIO_Speed = GPIO_Speed_25MHz,
-			.GPIO_Mode  = GPIO_Mode_AF,
+			.GPIO_Mode  = GPIO_Mode_IN,
 			.GPIO_OType = GPIO_OType_OD,
 			.GPIO_PuPd  = GPIO_PuPd_NOPULL,
 		},
