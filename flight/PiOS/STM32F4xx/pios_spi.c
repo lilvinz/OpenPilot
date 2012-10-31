@@ -215,6 +215,7 @@ out_fail:
  * \return -1 if disabled SPI port selected
  * \return -3 if invalid spi_prescaler selected
  */
+
 int32_t PIOS_SPI_SetClockSpeed(uint32_t spi_id, SPIPrescalerTypeDef spi_prescaler)
 {
 	struct pios_spi_dev * spi_dev = (struct pios_spi_dev *)spi_id;
@@ -222,19 +223,30 @@ int32_t PIOS_SPI_SetClockSpeed(uint32_t spi_id, SPIPrescalerTypeDef spi_prescale
 	bool valid = PIOS_SPI_validate(spi_dev);
 	PIOS_Assert(valid)
 	
-	SPI_InitTypeDef       SPI_InitStructure;
+	SPI_InitTypeDef SPI_InitStructure;
 	
+	if (spi_dev->cfg->regs == SPI1)
+	{
+		//APB2 == 84MHz
+		//divide by 2 to match frequency
+		spi_prescaler += 1;
+	}
+	else
+	{
+		//APB1 == 42MHz
+	}
+
 	if (spi_prescaler >= 8) {
 		/* Invalid prescaler selected */
 		return -3;
 	}
-	
+
 	/* Start with a copy of the default configuration for the peripheral */
 	SPI_InitStructure = spi_dev->cfg->init;
-	
+
 	/* Adjust the prescaler for the peripheral's clock */
 	SPI_InitStructure.SPI_BaudRatePrescaler = ((uint16_t) spi_prescaler & 7) << 3;
-	
+
 	/* Write back the new configuration */
 	SPI_Init(spi_dev->cfg->regs, &SPI_InitStructure);
 	
