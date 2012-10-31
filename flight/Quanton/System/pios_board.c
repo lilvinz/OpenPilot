@@ -131,6 +131,59 @@ static void PIOS_Board_configure_dsm(const struct pios_usart_cfg *pios_usart_dsm
 }
 #endif
 
+#if defined(PIOS_INCLUDE_HMC5883)
+#include "pios_hmc5883.h"
+static const struct pios_exti_cfg pios_exti_hmc5883_cfg __exti_config = {
+	.vector = PIOS_HMC5883_IRQHandler,
+	.line = EXTI_Line1,
+	.pin = {
+		.gpio = GPIOC,
+		.init = {
+			.GPIO_Pin = GPIO_Pin_1,
+			.GPIO_Speed = GPIO_Speed_100MHz,
+			.GPIO_Mode = GPIO_Mode_IN,
+			.GPIO_OType = GPIO_OType_OD,
+			.GPIO_PuPd = GPIO_PuPd_NOPULL,
+		},
+	},
+	.irq = {
+		.init = {
+			.NVIC_IRQChannel = EXTI1_IRQn,
+			.NVIC_IRQChannelPreemptionPriority = PIOS_IRQ_PRIO_LOW,
+			.NVIC_IRQChannelSubPriority = 0,
+			.NVIC_IRQChannelCmd = ENABLE,
+		},
+	},
+	.exti = {
+		.init = {
+			.EXTI_Line = EXTI_Line1, // matches above GPIO pin
+			.EXTI_Mode = EXTI_Mode_Interrupt,
+			.EXTI_Trigger = EXTI_Trigger_Rising,
+			.EXTI_LineCmd = ENABLE,
+		},
+	},
+};
+
+static const struct pios_hmc5883_cfg pios_hmc5883_cfg = {
+	.exti_cfg = &pios_exti_hmc5883_cfg,
+	.M_ODR = PIOS_HMC5883_ODR_75,
+	.Meas_Conf = PIOS_HMC5883_MEASCONF_NORMAL,
+	.Gain = PIOS_HMC5883_GAIN_1_9,
+	.Mode = PIOS_HMC5883_MODE_CONTINUOUS,
+
+};
+#endif /* PIOS_INCLUDE_HMC5883 */
+
+/**
+ * Configuration for the MS5611 chip
+ */
+#if defined(PIOS_INCLUDE_MS5611)
+#include "pios_ms5611.h"
+static const struct pios_ms5611_cfg pios_ms5611_cfg = {
+	.oversampling = 1,
+};
+#endif /* PIOS_INCLUDE_MS5611 */
+
 /**
  * Configuration for the MPU6000 chip
  */
@@ -321,14 +374,10 @@ void PIOS_Board_Init(void) {
 	}
 
 #endif	/* PIOS_INCLUDE_USB_HID */
-	
 	if (usb_hid_present || usb_cdc_present) {
 		PIOS_USBHOOK_Activate();
 	}
-	
 #endif	/* PIOS_INCLUDE_USB */
-
-
 
 	/* Configure the main IO port */
 	uint8_t hwsettings_DSMxBind;
@@ -464,7 +513,11 @@ void PIOS_Board_Init(void) {
 #endif
 		break;
 	case HWSETTINGS_CC_FLEXIPORT_I2C:
-		// not supported for this hardware
+#if defined(PIOS_INCLUDE_I2C)
+		if (PIOS_I2C_Init(&pios_i2c_usart1_adapter_id, &pios_i2c_usart1_adapter_cfg)) {
+			PIOS_Assert(0);
+		}
+#endif	/* PIOS_INCLUDE_I2C */
 		break;
 	}
 
@@ -566,6 +619,23 @@ void PIOS_Board_Init(void) {
 #else
 	PIOS_DEBUG_Init(&pios_tim_servo_all_channels, NELEMENTS(pios_tim_servo_all_channels));
 #endif
+
+#if defined(PIOS_INCLUDE_I2C)
+	if (PIOS_I2C_Init(&pios_i2c_internal_adapter_id, &pios_i2c_internal_adapter_cfg)) {
+		PIOS_DEBUG_Assert(0);
+	}
+
+#if defined(PIOS_INCLUDE_HMC5883)
+	PIOS_HMC5883_Init(&pios_hmc5883_cfg);
+	if (PIOS_HMC5883_Test() != 0)
+		PIOS_Assert(0);
+#endif
+
+#if defined(PIOS_INCLUDE_MS5611)
+	PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_internal_adapter_id);
+#endif
+
+#endif	/* PIOS_INCLUDE_I2C */
 
 #if defined(PIOS_INCLUDE_MPU6000) && defined(PIOS_INCLUDE_SPI)
 	// Set up the SPI interface to the serial flash

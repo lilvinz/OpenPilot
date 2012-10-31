@@ -340,7 +340,7 @@ void PIOS_I2C_usart1_er_irq_handler(void);
 void I2C1_EV_IRQHandler() __attribute__ ((alias ("PIOS_I2C_usart1_ev_irq_handler")));
 void I2C1_ER_IRQHandler() __attribute__ ((alias ("PIOS_I2C_usart1_er_irq_handler")));
 
-static const struct pios_i2c_adapter_cfg pios_i2c_usart1_cfg = {
+static const struct pios_i2c_adapter_cfg pios_i2c_usart1_adapter_cfg = {
   .regs = I2C1,
   .remap = GPIO_AF_I2C1,
   .init = {
@@ -394,17 +394,17 @@ static const struct pios_i2c_adapter_cfg pios_i2c_usart1_cfg = {
   },
 };
 
-uint32_t pios_i2c_usart1_id;
+uint32_t pios_i2c_usart1_adapter_id;
 void PIOS_I2C_usart1_ev_irq_handler(void)
 {
   /* Call into the generic code to handle the IRQ for this specific device */
-  PIOS_I2C_EV_IRQ_Handler(pios_i2c_usart1_id);
+  PIOS_I2C_EV_IRQ_Handler(pios_i2c_usart1_adapter_id);
 }
 
 void PIOS_I2C_usart1_er_irq_handler(void)
 {
   /* Call into the generic code to handle the IRQ for this specific device */
-  PIOS_I2C_ER_IRQ_Handler(pios_i2c_usart1_id);
+  PIOS_I2C_ER_IRQ_Handler(pios_i2c_usart1_adapter_id);
 }
 
 
@@ -415,7 +415,7 @@ void PIOS_I2C_usart3_er_irq_handler(void);
 void I2C2_EV_IRQHandler() __attribute__ ((alias ("PIOS_I2C_usart3_ev_irq_handler")));
 void I2C2_ER_IRQHandler() __attribute__ ((alias ("PIOS_I2C_usart3_er_irq_handler")));
 
-static const struct pios_i2c_adapter_cfg pios_i2c_usart3_cfg = {
+static const struct pios_i2c_adapter_cfg pios_i2c_usart3_adapter_cfg = {
   .regs = I2C2,
   .remap = GPIO_AF_I2C2,
   .init = {
@@ -430,13 +430,13 @@ static const struct pios_i2c_adapter_cfg pios_i2c_usart3_cfg = {
   .scl = {
     .gpio = GPIOB,
     .init = {
-			.GPIO_Pin = GPIO_Pin_12,
+			.GPIO_Pin = GPIO_Pin_10,
             .GPIO_Mode  = GPIO_Mode_AF,
             .GPIO_Speed = GPIO_Speed_50MHz,
             .GPIO_OType = GPIO_OType_OD,
             .GPIO_PuPd  = GPIO_PuPd_NOPULL,
     },
-	.pin_source = GPIO_PinSource12,
+	.pin_source = GPIO_PinSource10,
   },
   .sda = {
     .gpio = GPIOB,
@@ -469,17 +469,17 @@ static const struct pios_i2c_adapter_cfg pios_i2c_usart3_cfg = {
   },
 };
 
-uint32_t pios_i2c_usart3_id;
+uint32_t pios_i2c_usart3_adapter_id;
 void PIOS_I2C_usart3_ev_irq_handler(void)
 {
   /* Call into the generic code to handle the IRQ for this specific device */
-  PIOS_I2C_EV_IRQ_Handler(pios_i2c_usart3_id);
+  PIOS_I2C_EV_IRQ_Handler(pios_i2c_usart3_adapter_id);
 }
 
 void PIOS_I2C_usart3_er_irq_handler(void)
 {
   /* Call into the generic code to handle the IRQ for this specific device */
-  PIOS_I2C_ER_IRQ_Handler(pios_i2c_usart3_id);
+  PIOS_I2C_ER_IRQ_Handler(pios_i2c_usart3_adapter_id);
 }
 
 
@@ -489,7 +489,7 @@ void PIOS_I2C_internal_er_irq_handler(void);
 void I2C3_EV_IRQHandler() __attribute__ ((alias ("PIOS_I2C_internal_ev_irq_handler")));
 void I2C3_ER_IRQHandler() __attribute__ ((alias ("PIOS_I2C_internal_er_irq_handler")));
 
-static const struct pios_i2c_adapter_cfg pios_i2c_internal_cfg = {
+static const struct pios_i2c_adapter_cfg pios_i2c_internal_adapter_cfg = {
   .regs = I2C3,
   .remap = GPIO_AF_I2C3,
   .init = {
@@ -502,17 +502,6 @@ static const struct pios_i2c_adapter_cfg pios_i2c_internal_cfg = {
   },
   .transfer_timeout_ms = 50,
   .scl = {
-    .gpio = GPIOC,
-    .init = {
-			.GPIO_Pin = GPIO_Pin_9,
-            .GPIO_Mode  = GPIO_Mode_AF,
-            .GPIO_Speed = GPIO_Speed_50MHz,
-            .GPIO_OType = GPIO_OType_OD,
-            .GPIO_PuPd  = GPIO_PuPd_NOPULL,
-    },
-	.pin_source = GPIO_PinSource9,
-  },
-  .sda = {
     .gpio = GPIOA,
     .init = {
 			.GPIO_Pin = GPIO_Pin_8,
@@ -522,6 +511,17 @@ static const struct pios_i2c_adapter_cfg pios_i2c_internal_cfg = {
             .GPIO_PuPd  = GPIO_PuPd_NOPULL,
     },
 	.pin_source = GPIO_PinSource8,
+  },
+  .sda = {
+    .gpio = GPIOC,
+    .init = {
+			.GPIO_Pin = GPIO_Pin_9,
+            .GPIO_Mode  = GPIO_Mode_AF,
+            .GPIO_Speed = GPIO_Speed_50MHz,
+            .GPIO_OType = GPIO_OType_OD,
+            .GPIO_PuPd  = GPIO_PuPd_NOPULL,
+    },
+	.pin_source = GPIO_PinSource9,
   },
   .event = {
     .flags   = 0,		/* FIXME: check this */
@@ -543,17 +543,17 @@ static const struct pios_i2c_adapter_cfg pios_i2c_internal_cfg = {
   },
 };
 
-uint32_t pios_i2c_internal_id;
+uint32_t pios_i2c_internal_adapter_id;
 void PIOS_I2C_internal_ev_irq_handler(void)
 {
   /* Call into the generic code to handle the IRQ for this specific device */
-  PIOS_I2C_EV_IRQ_Handler(pios_i2c_internal_id);
+  PIOS_I2C_EV_IRQ_Handler(pios_i2c_internal_adapter_id);
 }
 
 void PIOS_I2C_internal_er_irq_handler(void)
 {
   /* Call into the generic code to handle the IRQ for this specific device */
-  PIOS_I2C_ER_IRQ_Handler(pios_i2c_internal_id);
+  PIOS_I2C_ER_IRQ_Handler(pios_i2c_internal_adapter_id);
 }
 
 
