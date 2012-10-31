@@ -218,7 +218,7 @@ static const struct pios_spi_cfg pios_spi_gyro_accel_cfg = {
 		.SPI_CRCPolynomial     = 7,
 		.SPI_CPOL              = SPI_CPOL_High,
 		.SPI_CPHA              = SPI_CPHA_2Edge,
-		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_16,		//@ APB1 PCLK1 42MHz / 16 == 2.6MHz
+		.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_32,		//@ APB2 PCLK1 82MHz / 32 == 2.6MHz
 	},
 	.use_crc = false,
 	.dma = {
