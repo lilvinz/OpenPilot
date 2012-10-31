@@ -891,7 +891,7 @@ EF_BOARDS  := $(ALL_BOARDS)
 BL_BOARDS  := $(filter-out ins, $(BL_BOARDS))
 BU_BOARDS  := $(filter-out ins, $(BU_BOARDS))
 
-# FIXME: The discovery builds don't have a bootloader updater and erase flash
+# FIXME: The discovery builds don't have a bootloader updater and entire flash target
 #        yet so we need to filter them out to prevent errors.
 BU_BOARDS  := $(filter-out discoveryf4, $(BU_BOARDS))
 EF_BOARDS  := $(filter-out discoveryf4, $(EF_BOARDS))
