@@ -1038,7 +1038,7 @@ static const struct pios_usart_cfg pios_usart5_cfg = {
 		.USART_Parity = USART_Parity_No,
 		.USART_StopBits = USART_StopBits_1,
 		.USART_HardwareFlowControl = USART_HardwareFlowControl_None,
-		.USART_Mode = USART_Mode_Rx,
+		.USART_Mode = USART_Mode_Rx | USART_Mode_Tx,
 	},
 	.irq = {
 		.init = {
