@@ -956,6 +956,29 @@ int32_t UAVObjLoad(UAVObjHandle obj_handle, uint16_t instId)
 			return -1;
 	}
 
+#elif defined(PIOS_INCLUDE_FLASH_COMPACT_SETTINGS)
+	if (UAVObjIsMetaobject(obj_handle)) {
+		if (instId != 0)
+			return -1;
+
+		// Fire event on success
+		if (PIOS_FLASHFS_Compact_ObjLoad(obj_handle, instId, (uint8_t*) MetaDataPtr((struct UAVOMeta *)obj_handle)) == 0)
+			sendEvent((struct UAVOBase*)obj_handle, instId, EV_UNPACKED);
+		else
+			return -1;
+	} else {
+
+		InstanceHandle instEntry = getInstance( (struct UAVOData *)obj_handle, instId);
+
+		if (instEntry == NULL)
+			return -1;
+
+		// Fire event on success
+		if (PIOS_FLASHFS_Compact_ObjLoad(obj_handle, instId, InstanceData(instEntry)) == 0)
+			sendEvent((struct UAVOBase*)obj_handle, instId, EV_UNPACKED);
+		else
+			return -1;
+	}
 #endif
 
 #if defined(PIOS_INCLUDE_SDCARD)
@@ -1009,7 +1032,9 @@ int32_t UAVObjDelete(UAVObjHandle obj_handle, uint16_t instId)
 	PIOS_Assert(obj_handle);
 #if defined(PIOS_INCLUDE_FLASH_SECTOR_SETTINGS)
 	PIOS_FLASHFS_ObjDelete(obj_handle, instId);
-#endif
+#elif defined(PIOS_INCLUDE_FLASH_COMPACT_SETTINGS)
+	PIOS_FLASHFS_Compact_ObjDelete(obj_handle, instId);
+	#endif
 #if defined(PIOS_INCLUDE_SDCARD)
 	uint8_t filename[14];
 
