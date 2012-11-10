@@ -189,7 +189,7 @@ static void PIOS_LSM303_Config(struct pios_lsm303_cfg const * cfg)
 	while (PIOS_LSM303_SetReg_Accel(PIOS_LSM303_CTRL_REG5_A, PIOS_LSM303_CTRL5_FIFO_EN) != 0);
 
 	// Fifo stream mode
-	while (PIOS_LSM303_SetReg_Accel(PIOS_LSM303_FIFO_CTRL_REG, PIOS_LSM303_FIFO_MODE_STREAM) != 0);
+	while (PIOS_LSM303_SetReg_Accel(PIOS_LSM303_FIFO_CTRL_REG_A, PIOS_LSM303_FIFO_MODE_STREAM) != 0);
 
 	lsm303_configured = true;
 }
