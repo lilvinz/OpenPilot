@@ -627,15 +627,26 @@ void PIOS_Board_Init(void) {
 		PIOS_DEBUG_Assert(0);
 	}
 
+	//I2C is slow, sensor init as well, reset watchdog to prevent reset here
+	PIOS_WDG_Clear();
+
 #if defined(PIOS_INCLUDE_HMC5883)
 	PIOS_HMC5883_Init(&pios_hmc5883_cfg);
 	if (PIOS_HMC5883_Test() != 0)
 		PIOS_Assert(0);
 #endif
 
+	//I2C is slow, sensor init as well, reset watchdog to prevent reset here
+	PIOS_WDG_Clear();
+
 #if defined(PIOS_INCLUDE_MS5611)
 	PIOS_MS5611_Init(&pios_ms5611_cfg, pios_i2c_internal_adapter_id);
+	if (PIOS_MS5611_Test() != 0)
+		PIOS_Assert(0);
 #endif
+
+	//I2C is slow, sensor init as well, reset watchdog to prevent reset here
+	PIOS_WDG_Clear();
 
 #endif	/* PIOS_INCLUDE_I2C */
 
