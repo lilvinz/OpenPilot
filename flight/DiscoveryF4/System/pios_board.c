@@ -259,10 +259,12 @@ void PIOS_Board_Init(void) {
 	HwSettingsInitialize();
 
 #ifndef ERASE_FLASH
-	/* Initialize watchdog as early as possible to catch faults during init */
-#ifndef DEBUG
-	PIOS_WDG_Init();
-#endif
+	/* Initialize watchdog as early as possible to catch faults during init
+	 * but do it only if there is no debugger connected
+	 */
+	if ((CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) == 0) {
+		PIOS_WDG_Init();
+	}
 #endif
 
 	/* Initialize the alarms library */
