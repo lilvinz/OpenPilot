@@ -22,6 +22,7 @@ MPU6050 SCL -> I2C1_SCL (PB6)
 MPU6050 SDA -> I2C1_SDA (PB9)
 MPU6050 INT -> EXTI (PD11)
 MPU6050 A0 -> GND
+MPU6050 VDD -> 3V or 5V depending on the breakout board
 
 SPI flash:
 FLASH D (15) -> SPI2_MOSI (PB15)
