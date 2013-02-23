@@ -249,36 +249,39 @@
                    <number>12</number>
                   </property>
                   <item>
-                   <widget class="QLabel" name="wzText">
+                    <widget class="QLabel" name="wzText">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
                       <horstretch>0</horstretch>
                       <verstretch>0</verstretch>
                      </sizepolicy>
                     </property>
-                    <property name="minimumSize">
-                     <size>
-                      <width>0</width>
-                      <height>90</height>
-                     </size>
+                    <property name="wordWrap">
+                     <bool>true</bool>
                     </property>
-                    <property name="text">
-                     <string>TextLabel</string>
+                   </widget>
+                   </item>
+                   <item>
+                     <layout class="QVBoxLayout" name="radioButtonsLayout"/>
+                    </item>
+                   <item>
+                     <layout class="QGridLayout" name="checkBoxesLayout"/>
+                    </item>
+                    <item>
+                    <widget class="QLabel" name="wzText2">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
                     </property>
                     <property name="wordWrap">
                      <bool>true</bool>
                     </property>
                    </widget>
-                  </item>
+                   </item>
                   <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_4">
-                    <item>
-                     <widget class="QGraphicsView" name="graphicsView"/>
-                    </item>
-                    <item>
-                     <layout class="QVBoxLayout" name="checkBoxesLayout"/>
-                    </item>
-                   </layout>
+                    <widget class="QGraphicsView" name="graphicsView"/>
                   </item>
                   <item>
                    <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -1365,7 +1368,8 @@ channel value for each flight mode.</string>
                    <enum>Qt::StrongFocus</enum>
                   </property>
                   <property name="toolTip">
-                   <string>After the time indicated here, the frame go back to disarmed state.</string>
+                   <string>After the time indicated here, the frame go back to disarmed state.
+Set to 0 to disable (recommended for soaring fixed wings).</string>
                   </property>
                   <property name="maximum">
                    <number>64</number>
@@ -1375,7 +1379,7 @@ channel value for each flight mode.</string>
                 <item>
                  <widget class="QLabel" name="label_19">
                   <property name="text">
-                   <string>seconds.</string>
+                   <string>seconds (0 to disable).</string>
                   </property>
                  </widget>
                 </item>
